@@ -91,8 +91,6 @@ sudo mv k9s /usr/local/bin/
 # echo 'alias k=kubectl' >> ~/.bashrc && source ~/.bashrc
 ```
 
-> **주의**: 본 문서의 모든 명령은 **`kubectl`** 표기를 사용합니다(별칭 `k` 미사용).
-
 ---
 
 ## Git 저장소 준비 & GitOps 개요
