@@ -34,21 +34,13 @@
 
 ## 사전 준비
 
-* **Docker Hub** 혹은 **quay.io**에 가입합니다. (실습 후 컨테이너 이미지를 올리기 위함)
-  * 레이트 리밋 정책은 레지스트리마다 다를 수 있습니다. 두 서비스 모두 일정 수준의 제한이 있으니 CI/CD에서 대량 풀 시 주의하세요.
-  * Docker Hub 토큰 발급 참고: <https://teichae.tistory.com/entry/Docker-Hub에서의-Token-발급-방법>
-
+* **Docker Hub** 혹은 **quay.io**에 가입합니다.
 * **kind** 설치 (Linux, **v0.30.0**)
 ```bash
-# amd64
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
-# arm64 (예: Raspberry Pi, ARM 서버)
-# curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-arm64
 chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
 kind version
 ```
-
----
 
 ## 필수 툴 설치 (Linux)
 
