@@ -1,3 +1,4 @@
+
 # 컨테이너 빌드 & GitOps 실습 (Linux + kind)
 
 **목표**: Linux 환경에서 Docker, Jib, Buildah, Buildpacks, Shipwright(+Kaniko) 등 다양한 방식으로 컨테이너 이미지를 빌드/푸시하고, Kustomize를 활용해 쿠버네티스 리소스를 선언적으로 배포하는 실습입니다.
@@ -10,12 +11,10 @@
 * [필수 툴 설치 (Linux)](#필수-툴-설치-linux)
 * [Git 저장소 준비 & GitOps 개요](#git-저장소-준비--gitops-개요)
 * [실습환경 구성: kind](#실습환경-구성-kind)
-
   * [kind란?](#kind란)
   * [클러스터 생성](#클러스터-생성)
   * [클러스터 상태 확인](#클러스터-상태-확인)
 * [컨테이너 빌드](#컨테이너-빌드)
-
   * [Docker로 빌드/푸시/실행](#docker로-빌드푸시실행)
   * [Docker 없이 직접 OCI 이미지 빌드](#docker-없이-직접-oci-이미지-빌드)
   * [Jib로 Docker 없이 빌드](#jib로-docker-없이-빌드)
@@ -24,23 +23,22 @@
   * [kpack으로 Kubernetes에서 이미지 빌드](#kpack으로-kubernetes에서-이미지-빌드)
   * [Shipwright + Kaniko로 쿠버네티스 기반 빌드](#shipwright--kaniko로-쿠버네티스-기반-빌드)
 * [Kustomize로 선언적 배포](#kustomize로-선언적-배포)
-
   * [Secret/ConfigMap 자동 생성](#secretconfigmap-자동-생성)
   * [부분 패치(Overlays)로 배포 차별화](#부분-패치overlays로-배포-차별화)
   * [이미지 이름/태그 치환](#이미지-이름태그-치환)
   * [namePrefix/nameSuffix, replacements 예시](#nameprefixnamesuffix-replacements-예시)
   * [base/overlay 개념과 디렉터리 구성](#baseoverlay-개념과-디렉터리-구성)
+* [주의사항](#주의사항)
 
 ---
 
 ## 사전 준비
 
 * **Docker Hub** 혹은 **quay.io**에 가입합니다. (실습 후 컨테이너 이미지를 올리기 위함)
+  * 레이트 리밋 정책은 레지스트리마다 다를 수 있습니다. 두 서비스 모두 일정 수준의 제한이 있으니 CI/CD에서 대량 풀 시 주의하세요.
+  * Docker Hub 토큰 발급 참고: <https://teichae.tistory.com/entry/Docker-Hub에서의-Token-발급-방법>
 
-  * 호출 한도가 걱정된다면 **quay.io** 사용 권장
-  * Docker Hub 토큰 발급 참고: [https://teichae.tistory.com/entry/Docker-Hub에서의-Token-발급-방법](https://teichae.tistory.com/entry/Docker-Hub에서의-Token-발급-방법)
 * **kind** 설치 (Linux, **v0.30.0**)
-
 ```bash
 # amd64
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
@@ -101,11 +99,13 @@ sudo mv k9s /usr/local/bin/
 # echo 'alias k=kubectl' >> ~/.bashrc && source ~/.bashrc
 ```
 
+> **주의**: 본 문서의 모든 명령은 **`kubectl`** 표기를 사용합니다(별칭 `k` 미사용).
+
 ---
 
 ## Git 저장소 준비 & GitOps 개요
 
-* Git 저장소 만들기: [https://github.com/gitops-cookbook/gitops-cookbook-sc](https://github.com/gitops-cookbook/gitops-cookbook-sc) 를 **clone**하고 **자신의 저장소**를 만듭니다.
+* Git 저장소 만들기: <https://github.com/gitops-cookbook/gitops-cookbook-sc> 를 **clone**하고 **자신의 저장소**를 만듭니다.
 
 ### GitOps란?
 
@@ -114,11 +114,9 @@ sudo mv k9s /usr/local/bin/
 **GitOps 기반 CI/CD 단계**
 
 * **CI (Continuous Integration)**
-
   * 개발자가 코드를 푸시하면 GitHub Actions / Jenkins / GitLab CI 등에서 **빌드 & 테스트** 실행
-  * 이미지가 정상 빌드되면 Docker Registry(ECR, GCR 등)에 **푸시**
+  * 이미지가 정상 빌드되면 Docker Registry(ECR, GCR, Docker Hub, quay.io 등)에 **푸시**
 * **CD (Continuous Delivery/Deployment)**
-
   * **GitOps 저장소**(배포 설정)가 변경되면 Argo CD / Flux CD가 **모니터링**
   * 변경 감지 시 **쿠버네티스 클러스터에 동기화**
 
@@ -149,7 +147,7 @@ nodes:
 EOF
 ```
 
-> 주의: kind 생성 시 **kubeconfig의 current context**가 방금 만든 클러스터로 바뀝니다. 다른 컨텍스트로 변경하려면 `kubectx` 등을 사용하세요.
+> 메모: kind 생성 시 kubeconfig **current context**가 방금 만든 클러스터로 바뀝니다. 필요 시 `kubectl config use-context <다른컨텍스트>`로 변경하세요.
 
 생성 후 `docker ps` 예시:
 
@@ -162,9 +160,11 @@ CONTAINER ID   IMAGE                  COMMAND                  CREATED       STA
 ### 클러스터 상태 확인
 
 ```bash
-k get nodes -o wide
-k cluster-info
+kubectl get nodes -o wide
+kubectl cluster-info
 ```
+
+> **포트 매핑 참고**: 위 kind 설정의 `extraPortMappings`는 **클러스터 내부 Service가 NodePort(예: 30000/30001)** 일 때 호스트에서 접근할 수 있게 해줍니다. 단순 Deployment만 만들면 매핑이 적용되지 않습니다.
 
 ---
 
@@ -179,10 +179,10 @@ k cluster-info
 #### 예시 Dockerfile
 
 `ch03/python-app/Dockerfile`
-
 ```dockerfile
 # 기반 레이어가 되는 이미지 지정. UBI는 RHEL 기반이며 무료.
 FROM registry.access.redhat.com/ubi8/python-39
+# (장기 운영 시 UBI9 전환 고려: registry.access.redhat.com/ubi9/python-39)
 ENV PORT=8080
 EXPOSE 8080
 WORKDIR /usr/src/app
@@ -205,50 +205,26 @@ cd chapters/chapters/ch03/python-app
 MYREGISTRY=docker.io
 MYUSER=<자신의-계정명>
 
-# 컨테이너 이미지 빌드 : FROM 이후 4번의 변경 작업으로 4개의 Layer 추가됨
+# 컨테이너 이미지 빌드
 docker build -f Dockerfile -t $MYREGISTRY/$MYUSER/pythonapp:latest .
-# (캐시 미사용) --no-cache 옵션 가능
+# (캐시 미사용 시) --no-cache 옵션 사용 가능
 
 # 이미지 목록 확인
 docker images
-```
 
-빌드시 출력 예:
-
-```
-[+] Building 37.2s (10/10) FINISHED                                                                      docker:desktop-linux
- => [1/5] FROM registry.access.redhat.com/ubi8/python-39:latest@sha256:fc4a1...  33.5s
- => [2/5] WORKDIR /usr/src/app                                                   1.1s
- => [3/5] COPY requirements.txt ./                                               0.0s
- => [4/5] RUN pip install --no-cache-dir -r requirements.txt                     1.4s
- => [5/5] COPY . .                                                               0.0s
-```
-
-**레이어/히스토리/베이스 이미지 정보 확인**
-
-```bash
-# 이미지 상세(layer) 정보
+# 레이어/히스토리/베이스 이미지 정보 확인 (선택)
 docker inspect $MYREGISTRY/$MYUSER/pythonapp:latest | jq
-# 빌드 히스토리
 docker history $MYREGISTRY/$MYUSER/pythonapp:latest
-# base 이미지 정보
 docker inspect registry.access.redhat.com/ubi8/python-39:latest | jq
-```
 
-**푸시 & 실행**
-
-```bash
+# 레지스트리 로그인 & 푸시
 docker login $MYREGISTRY
-
 docker push $MYREGISTRY/$MYUSER/pythonapp:latest
 
-docker run -d --name myweb -p 8080:8080 -it $MYREGISTRY/$MYUSER/pythonapp:latest
-
-docker ps        # 포트 확인
-docker images
+# 실행 (데몬 모드; TTY 불필요)
+docker run -d --name myweb -p 8080:8080 $MYREGISTRY/$MYUSER/pythonapp:latest
 
 # 접속/로그 확인
-curl 127.0.0.1:8080
 curl 127.0.0.1:8080
 docker logs myweb
 
@@ -256,9 +232,7 @@ docker logs myweb
 docker rm -f myweb
 ```
 
-> 메모:
->
-> * 한 번 pull한 이미지는 로컬 캐시에 저장되어 재사용됩니다.
+> * 한 번 pull한 이미지는 로컬 캐시에 저장되어 재사용됩니다.  
 > * Linux(amd64/arm64) **아키텍처 차이**에 유의하세요. 멀티 아키텍처 빌드가 필요할 수 있습니다.
 
 ---
@@ -274,11 +248,12 @@ ENV PATH=/bin
 ENTRYPOINT ["/bin/bash"]
 ```
 
-> 리눅스 환경이 필요하므로 **kind의 control-plane 컨테이너**에서 진행합니다. (컨테이너 이름은 환경에 따라 다를 수 있음)
+> **실행 위치**: 리눅스 유틸 설치가 편한 **kind control-plane 컨테이너**에서 진행합니다.  
+> 컨테이너 이름 예: `myk8s-1week-control-plane`
 
 ```bash
-# control plane 접근 (예시: 이름 확인 후 변경)
-docker exec -it myk8s-cookbook-control-plane bash
+# control plane 접근
+docker exec -it myk8s-1week-control-plane bash
 
 # 필요 패키지 설치
 apt update -y
@@ -293,18 +268,24 @@ mkdir -p rootfs/bin rootfs/etc rootfs/lib
 
 ARCH=$(uname -m)
 echo "시스템 아키텍처: $ARCH"
-OCI_ARCH="arm64"
-
-# bash 복사
-BASH_PATH=$(which bash)
-cp -v "$BASH_PATH" rootfs/bin/bash
+if [ "$ARCH" = "x86_64" ]; then
+  OCI_ARCH=amd64
+  mkdir -p rootfs/lib/x86_64-linux-gnu
+  cp -v /bin/bash rootfs/bin/bash
+  cp -v /lib/x86_64-linux-gnu/libtinfo.so.* rootfs/lib/x86_64-linux-gnu/ || true
+  cp -v /lib/x86_64-linux-gnu/libc.so.*     rootfs/lib/x86_64-linux-gnu/
+  cp -v /lib64/ld-linux-x86-64.so.2         rootfs/lib/
+elif [ "$ARCH" = "aarch64" ]; then
+  OCI_ARCH=arm64
+  mkdir -p rootfs/lib/aarch64-linux-gnu
+  cp -v /bin/bash rootfs/bin/bash
+  cp -v /lib/aarch64-linux-gnu/libtinfo.so.* rootfs/lib/aarch64-linux-gnu/ || true
+  cp -v /lib/aarch64-linux-gnu/libc.so.*     rootfs/lib/aarch64-linux-gnu/
+  cp -v /lib/ld-linux-aarch64.so.1           rootfs/lib/
+else
+  echo "미지원 아키텍처: $ARCH"; exit 1
+fi
 chmod 755 rootfs/bin/bash
-
-# 의존 라이브러리 복사 (aarch64 예시)
-mkdir -p rootfs/lib/aarch64-linux-gnu/
-cp /lib/aarch64-linux-gnu/libtinfo.so.6  rootfs/lib/aarch64-linux-gnu/
-cp /lib/aarch64-linux-gnu/libc.so.6      rootfs/lib/aarch64-linux-gnu/
-cp /lib/ld-linux-aarch64.so.1           rootfs/lib/
 
 # /etc 파일 생성
 cat > rootfs/etc/passwd << 'EOF'
@@ -328,7 +309,7 @@ echo "압축 후 SHA: $LAYER_TARGZ_SHA"
 mv rootfs.tar.gz image/blobs/sha256/${LAYER_TARGZ_SHA}
 rm rootfs.tar
 
-# 이미지 설정파일 생성
+# 이미지 config
 cat > image/blobs/sha256/config.json << EOF
 {
   "architecture": "$OCI_ARCH",
@@ -351,7 +332,7 @@ CONFIG_SHA=$(sha256sum image/blobs/sha256/config.json | cut -d " " -f1)
 CONFIG_SIZE=$(stat -c%s image/blobs/sha256/config.json)
 mv image/blobs/sha256/config.json image/blobs/sha256/${CONFIG_SHA}
 
-# Step 6: Manifest
+# Manifest
 LAYER_SIZE=$(stat -c%s image/blobs/sha256/${LAYER_TARGZ_SHA})
 cat > image/blobs/sha256/manifest.json << EOF
 {
@@ -374,7 +355,7 @@ MANIFEST_SHA=$(sha256sum image/blobs/sha256/manifest.json | cut -d " " -f1)
 MANIFEST_SIZE=$(stat -c%s image/blobs/sha256/manifest.json)
 mv image/blobs/sha256/manifest.json image/blobs/sha256/${MANIFEST_SHA}
 
-# Step 7: Index
+# Index
 cat > image/index.json << EOF
 {
   "schemaVersion": 2,
@@ -389,16 +370,17 @@ cat > image/index.json << EOF
 }
 EOF
 
-# Step 8: 최종 패키징
+# 최종 패키징
 tar -cf image.tar -C image .
 
 # 업로드 (Docker Hub 또는 quay.io)
-skopeo login docker.io   # 또는 quay.io
-skopeo copy oci-archive:image.tar docker://do/myimage:latest
+MYUSER=<dockerhub-계정>
+skopeo login docker.io
+skopeo copy oci-archive:image.tar docker://docker.io/${MYUSER}/myimage:latest
 
 # 실행 확인 (호스트에서)
-docker pull <your-user>/myimage:latest
-docker run --rm -it <your-user>/myimage:latest bash
+docker pull docker.io/${MYUSER}/myimage:latest
+docker run --rm -it docker.io/${MYUSER}/myimage:latest bash
 ```
 
 ---
@@ -424,14 +406,11 @@ mvn compile com.google.cloud.tools:jib-maven-plugin:3.4.6:build \
   -Dimage=docker.io/<docker-hub-id>/jib-example:latest \
   -Djib.to.auth.username=<docker-hub-id> \
   -Djib.to.auth.password=<docker-hub-token> \
-  -Djib.from.platforms=linux/arm64
+  -Djib.from.platforms=linux/arm64   # 베이스 이미지가 해당 플랫폼 지원해야 함
 
 # 호스트에서 실행 확인
-docker run -d --name myweb2 -p 8080:8080 -it docker.io/$MYUSER/jib-example
+docker run -d --name myweb2 -p 8080:8080 docker.io/<docker-hub-id>/jib-example:latest
 curl -s 127.0.0.1:8080/hello | jq
-
-docker images
-docker inspect $MYUSER/jib-example | jq
 
 # 정리
 docker rm -f myweb2
@@ -448,8 +427,8 @@ docker rm -f myweb2
 docker exec -it myk8s-1week-control-plane bash
 
 # 컨테이너 런타임/이미지 조회 도구 (참고)
-crictl ps
-crictl images
+crictl ps || true
+crictl images || true
 
 # podman(+buildah) 설치
 apt update
@@ -470,24 +449,24 @@ cat << 'EOF' > index.html
 </html>
 EOF
 
-# Dockerfile
+# Dockerfile (EOL된 centos:latest 대신 rockylinux:9 사용)
 cat << 'EOF' > Dockerfile
-FROM centos:latest
-RUN yum -y install httpd
+FROM rockylinux:9
+RUN dnf -y install httpd && dnf clean all
 COPY index.html /var/www/html/index.html
 EXPOSE 80
 CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
 EOF
 
 # 빌드 (arm64 예시)
-buildah build --arch arm64 -f Dockerfile -t docker.io/<username>/gitops-website
+buildah build --arch arm64 -f Dockerfile -t docker.io/<username>/gitops-website:latest
 
 # 확인
 buildah images && podman images
 
-# 레지스트리에 푸시
-buildah login --username <username> <registry-url>
-buildah push <imageID> docker.io/<username>/gitops-website
+# 레지스트리에 푸시 (태그로 푸시하는 것을 권장)
+buildah login --username <username> docker.io
+buildah push docker.io/<username>/gitops-website:latest
 ```
 
 ---
@@ -532,18 +511,18 @@ docker rm -f myapp
 
 ```bash
 # 설치
-k apply -f https://github.com/buildpacks-community/kpack/releases/download/v0.17.0/release-0.17.0.yaml
+kubectl apply -f https://github.com/buildpacks-community/kpack/releases/download/v0.17.0/release-0.17.0.yaml
 kubectl get pods -n kpack
 
 # 1) Registry Secret
-k create secret docker-registry tutorial-registry-credentials \
+kubectl create secret docker-registry tutorial-registry-credentials \
   --docker-username=user \
   --docker-password=password \
   --docker-server=https://index.docker.io/v1/ \
   --namespace default
 
 # 2) ServiceAccount
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -556,7 +535,7 @@ imagePullSecrets:
 EOF
 
 # 3) ClusterStore (빌드팩 모음)
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: kpack.io/v1alpha2
 kind: ClusterStore
 metadata:
@@ -568,7 +547,7 @@ spec:
 EOF
 
 # 4) ClusterStack (베이스 OS)
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: kpack.io/v1alpha2
 kind: ClusterStack
 metadata:
@@ -581,7 +560,7 @@ spec:
     image: "paketobuildpacks/run-jammy-base"
 EOF
 
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: kpack.io/v1alpha2
 kind: ClusterLifecycle
 metadata:
@@ -591,7 +570,7 @@ spec:
 EOF
 
 # 5) Builder (Store+Stack 조합)
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: kpack.io/v1alpha2
 kind: Builder
 metadata:
@@ -614,7 +593,7 @@ spec:
 EOF
 
 # 6) Image (무엇을 빌드할지)
-cat << 'EOF' | k apply -f -
+cat << 'EOF' | kubectl apply -f -
 apiVersion: kpack.io/v1alpha2
 kind: Image
 metadata:
@@ -636,17 +615,11 @@ spec:
       value: "17"
 EOF
 
-# 빌드 로그
-kp build logs tutorial-image -n default
+# 빌드 로그 (kp CLI 필요)
+# https://github.com/buildpacks-community/kpack-cli
+# 설치 후:
+# kp build logs tutorial-image -n default
 kubectl get pods -n default
-```
-
-빌드 Pod 예시:
-
-```
-NAME                               READY   STATUS       RESTARTS   AGE
-tutorial-image-build-1-build-pod   0/1     Init:Error   0          26m
-tutorial-image-build-2-build-pod   0/1     Completed    0          12m
 ```
 
 ---
@@ -681,7 +654,6 @@ kubectl create secret docker-registry push-secret \
  --docker-username=$REGISTRY_USER \
  --docker-password=$REGISTRY_PASSWORD \
  --docker-email=$EMAIL
-kubectl get secret
 
 # Build 객체 (Kaniko)
 cat << 'EOF' | kubectl apply -f -
@@ -721,16 +693,6 @@ kubectl apply -f buildrun-go.yaml
 kubectl get pods -n default -w
 ```
 
-로그 예시:
-
-```
-step-build-and-push INFO[0001] Resolved base name ...
-step-build-and-push INFO[0029] COPY main.go .
-step-build-and-push INFO[0046] Adding exposed port: 8080/tcp
-step-build-and-push INFO[0046] Pushing image to docker.io/<user>/sample-golang:latest
-...
-```
-
 ---
 
 ## Kustomize로 선언적 배포
@@ -764,11 +726,13 @@ configMapGenerator:
 EOF
 
 # 생성 미리보기
-kubectl create -k ./ --dry-run=client -o yaml --save-config=false
-# 실제 생성
-kubectl create -k ./ --save-config=false
+kubectl apply -k ./ --dry-run=client -o yaml
+# 실제 생성/적용
+kubectl apply -k ./
+```
 
-# .env 파일 → ConfigMap
+`.env` 파일로 생성:
+```bash
 cat << 'EOF' > .env
 FOO=Bar
 STUDY=Cicd
@@ -781,11 +745,10 @@ configMapGenerator:
   - .env
 EOF
 
-kubectl create -k ./ --save-config=false
+kubectl apply -k ./
 ```
 
 **Deployment에서 ConfigMap 사용 예**
-
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -812,7 +775,6 @@ spec:
 ```
 
 **Secret 자동 생성 예**
-
 ```yaml
 # 파일 그대로 secret 생성
 secretGenerator:
@@ -829,7 +791,6 @@ secretGenerator:
 ```
 
 **generatorOptions 예시**
-
 ```yaml
 configMapGenerator:
 - name: example-configmap-3
@@ -842,8 +803,7 @@ generatorOptions:
   annotations:
     note: generated
 ```
-
-> 운영(Production) 환경에선 Secret은 **Vault/Secret Manager** 연동 권장.
+> 실제 운영에서는 해시를 비활성화(`disableNameSuffixHash: true`)하지 않는 편이 **롤아웃 자동화**에 유리합니다.
 
 ### 부분 패치(Overlays)로 배포 차별화
 
@@ -906,10 +866,8 @@ patches:
 - path: set_memory.yaml
 EOF
 
-kubectl create -k ./ --save-config=false
+kubectl apply -k ./
 ```
-
-배포 결과 예시(요약): `replicas=3`, `limits.memory=512Mi` 반영됨.
 
 ### 이미지 이름/태그 치환
 
@@ -923,7 +881,7 @@ images:
   newTag: alpine
 ```
 
-`kubectl create -k ./` 후 배포 매니페스트에는 `image: quay.io/nginx/nginx-unprivileged:alpine`로 반영.
+적용 후 배포 매니페스트에는 `image: quay.io/nginx/nginx-unprivileged:alpine`로 반영됩니다.
 
 ### namePrefix/nameSuffix, replacements 예시
 
@@ -1040,6 +998,8 @@ kubectl apply -k prod/
 
 ## 주의사항
 
-* 일부 예시는 환경/아키텍처에 따라 경로/이름이 달라질 수 있습니다. (`docker ps`, `kubectl get pods` 등으로 확인 후 조정)
+* 예시는 환경/아키텍처에 따라 경로/이름이 달라질 수 있습니다. (`docker ps`, `kubectl get pods` 등으로 확인 후 조정)
 * 예시의 `<username>`, `<docker-hub-id>`, `<repo>`, `<tag>` 등은 **본인 환경에 맞게 치환**하세요.
 * Buildah는 Linux 전용입니다. macOS에서는 Podman Desktop 또는 Lima/Colima 등을 활용해 Linux VM에서 진행하세요.
+* `kubectl create -k` 대신 **`kubectl apply -k`** 사용을 권장합니다(반복 적용/드리프트 관리에 안전).
+* kind에서 외부 접근이 필요하면 **Service를 NodePort**로 만들고 `nodePort: 30000` 등으로 매핑한 포트를 사용하세요.
