@@ -1108,4 +1108,3 @@ helm uninstall mypg || true
 kind delete cluster --name myk8s || true
 ```
 kubectl delete taskruns,pipelineruns.tekton.dev --all --ignore-not-found
-```
