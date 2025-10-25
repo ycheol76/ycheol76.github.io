@@ -6,7 +6,7 @@
 ## 학습 정리
 
 * [1주차 - 컨테이너 빌드 & GitOps 실습](https://github.com/ycheol76/ycheol76.github.io/blob/main/1%EC%A3%BC%EC%B0%A8%20-%20Image%20Build.md)
-
+* [2주차 - Helm, Tekton 실습](https://github.com/ycheol76/ycheol76.github.io/blob/main/2%EC%A3%BC%EC%B0%A8%20-%20Helm%2C%20Tekton.md)
 
 ---
 
