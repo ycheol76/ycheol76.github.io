@@ -1,6 +1,6 @@
 # 5장 헬름(Helm)
 
-이 문서는 **설명 + 실습 명령**을 함께 담은 “복붙용 가이드”입니다. 각 절은 **왜 하는지(개념)** → **어떻게 하는지(명령)** → **무엇을 확인해야 하는지(검증/트러블슈팅)** 순서로 구성했습니다.
+이 문서는 **설명 + 실습 명령**을 함께 담은 “복붙용 가이드”입니다. 각 절은 **왜 하는지(개념)** → **어떻게 하는지(명령)** → **무엇을 확인해야 하는지(검증/트러블슈팅)** 순서로 구성되어 있습니다.
 
 ## 목차
 
@@ -33,14 +33,14 @@
 
 **Helm**은 쿠버네티스 리소스(YAML)를 **Go 템플릿**으로 묶어 **차트(Chart)**라는 배포 단위로 관리하는 **패키지 관리자**입니다.
 
-* 우리가 원하는 값만 `values.yaml`/`--set`으로 바꿔서 일관되게 설치·업그레이드·롤백할 수 있습니다.
-* 차트는 버전이 있으므로 **재현 가능한 배포**가 가능합니다.
-* Kustomize는 패치/오버레이 중심이고 템플릿 언어가 없지만, Helm은 템플릿 함수(Sprig 포함)와 **의존성, 릴리스 메타데이터, 롤백**까지 제공합니다.
-* 단, **ConfigMap 변경**은 기본적으로 파드를 다시 굴리지 않습니다. Helm에서는 템플릿에 **체크섬 어노테이션**을 주입해 변경을 감지하도록 합니다(§5.7).
+* 우리가 원하는 값만 `values.yaml`/`--set`으로 바꿔 일관되게 설치·업그레이드·롤백을 수행할 수 있습니다.
+* 그리고 차트는 버전이 있으므로 **재현 가능한 배포**가 가능합니다.
+* Kustomize는 패치/오버레이 중심이고 템플릿 언어가 없지만, Helm은 템플릿 함수(Sprig 포함)와 **의존성, 릴리스 메타데이터, 롤백**까지 제공됩니다.
+* 단, **ConfigMap 변경**은 기본적으로 파드를 다시 생성하지는 않습니다. Helm에서는 템플릿에 **체크섬 어노테이션**을 주입해서 변경을 감지하게 해야 합니다(§5.7).
 
 ---
 
-## 용어 간단 정리
+## 용어 정리
 
 * **Chart**: 애플리케이션 배포 단위(템플릿 + 기본값 + 메타데이터).
 * **Release**: 특정 차트를 특정 값으로 설치한 인스턴스. 릴리스 이력은 Secret(`sh.helm.release.*`)에 저장.
@@ -63,7 +63,7 @@
 
 ## 5.1 Creating a Helm Project
 
-**왜?** 템플릿화된 차트를 만들면 배포가 반복 가능하고, 환경마다 값만 바꿔 배포할 수 있습니다.
+**왜?** 템플릿화된 차트를 만들면 배포가 반복으로 가능하고, 환경마다 값만 바꿔 배포할 수 있습니다.
 
 ### 실습: 차트 생성 → 로컬 렌더링 → 설치/검증
 
@@ -209,7 +209,7 @@ kubectl get secret | grep sh.helm.release
 
 ## 5.2 Reusing Statements Between Templates
 
-**왜?** 템플릿에 같은 코드를 여러 번 복붙하면 유지보수 지옥입니다. 공통 블록을 만들어 한 곳에서 바꾸면 끝!
+**왜?** 템플릿에 같은 코드를 여러 번 복붙하면 유지보수가 지옥입니다. 공통 블록을 만들어 한 곳에서 바꾸면 끝!
 
 ### 실습: `_helpers.tpl`로 라벨/셀렉터 중복 제거
 
@@ -266,13 +266,13 @@ app.kubernetes.io/version: {{ .Chart.AppVersion }}
 helm template . | grep -n 'version:' -n -A1
 ```
 
-> **포인트**: 공통 블록은 "한 방에 교체"가 가능해 실수/누락을 줄여줍니다.
+* **포인트**: 공통 블록은 "한 방에 교체"가 가능해 실수/누락을 줄여줍니다.
 
 ---
 
 ## 5.3 Updating an Application (이미지/값 갱신 & 롤백)
 
-**왜?** 운영 중인 애플리케이션의 **이미지/설정**을 안전하게 업데이트하고, 문제가 생기면 **즉시 롤백**하려고.
+**왜?** 운영 중인 애플리케이션의 **이미지/설정**을 안전하게 업데이트하고, 문제가 생기면 **즉시 롤백**하려고. 음~
 
 ### 실습: 업그레이드 → 이력 확인 → 롤백 → values 오버라이드
 
@@ -317,7 +317,7 @@ kubectl get secret | grep sh.helm.release
 kubectl get deploy,replicaset -o wide
 ```
 
-> `appVersion`(앱 버전)과 `version`(차트 버전)은 **의미가 다릅니다**. 템플릿이 바뀌면 차트 버전, 애플리케이션이 바뀌면 앱 버전을 올립니다.
+* `appVersion`(앱 버전)과 `version`(차트 버전)은 **의미가 다릅니다**. 템플릿이 바뀌면 차트 버전, 애플리케이션이 바뀌면 앱 버전을 올립니다.
 
 3. **롤백** — 문제가 생기면 빠르게 복구
 
@@ -362,7 +362,7 @@ repo/
 └── pacman-0.1.0.tgz
 ```
 
-> **참고**: Helm 전용 repo 대신 **OCI 레지스트리**에 차트를 저장/설치할 수도 있습니다(§OCI).
+* **참고**: Helm 전용 repo 대신 **OCI 레지스트리**에 차트를 저장/설치할 수도 있습니다(§OCI).
 
 ---
 
@@ -404,7 +404,7 @@ helm uninstall "$release"
 
 ### 실습 C — 구버전 값 키 예시(`postgresql.*`)
 
-> Bitnami 차트는 버전에 따라 값 키가 **`postgresql.*` → `auth.*`**로 바뀐 이력이 있습니다. 설치 전 `helm show values`로 **현재 버전의 키**를 반드시 확인하세요.
+* Bitnami 차트는 버전에 따라 값 키가 **`postgresql.*` → `auth.*`**로 바뀐 이력이 있습니다. 설치 전 `helm show values`로 **현재 버전의 키**를 반드시 확인하세요.
 
 ```bash
 helm install my-db \
@@ -559,7 +559,7 @@ helm uninstall music-db
 kubectl delete pvc --all
 ```
 
-> **포인트**: 의존 차트의 **Secret/이름/키**가 앱 템플릿과 정확히 일치해야 합니다. 값 키가 다른(버전차) 경우 런타임에서 실패합니다.
+* **포인트**: 의존 차트의 **Secret/이름/키**가 앱 템플릿과 정확히 일치해야 합니다. 값 키가 다른(버전차) 경우 런타임에서 실패합니다.
 
 ---
 
@@ -625,7 +625,7 @@ spec:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
 ```
 
-> 파일별로 키를 분리하면, 어떤 변경이 롤아웃을 유발했는지 추적하기 쉽습니다.
+* 파일별로 키를 분리하면, 어떤 변경이 롤아웃을 유발했는지 추적하기 쉽습니다.
 
 ### 주의 사항
 
@@ -633,7 +633,6 @@ spec:
 * 미세한 공백/개행 차이도 해시에 반영됩니다(의도된 동작). 템플릿 정렬 시 일관성을 유지하세요.
 * **Kustomize**는 ConfigMap/Secret **이름 자체에 해시를 붙이는 방식**(ConfigMapGenerator)으로 유사 효과를 냅니다. Helm은 **어노테이션 해시** 방식이라는 점만 다릅니다.
 
-$1
 **왜 중요한가?** 이미지 출처가 바뀌면 **보안/업데이트 경로**가 바뀝니다. 운영 중인 워크로드의 베이스 이미지를 점검해야 합니다.
 
 * GeekNews: `docker.io/Bitnami` 삭제 안내
@@ -658,7 +657,7 @@ curl -s 127.0.0.1:8080
 docker rm -f nginx
 ```
 
-> **포인트**: 신규 이미지는 BSI 네임스페이스(`bitnamisecure/*`)에서 확인하세요. Legacy는 보안 패치가 멈춥니다.
+* **포인트**: 신규 이미지는 BSI 네임스페이스(`bitnamisecure/*`)에서 확인하세요. Legacy는 보안 패치가 멈춥니다.
 
 ---
 
@@ -705,7 +704,7 @@ helm uninstall my-nginx
 
 ## 6장 Cloud Native CI/CD
 
-> **그림으로 이해하기**: Tekton은 **Step(컨테이너)**들이 모여 **Task(파드)**가 되고, Task들이 모여 **Pipeline**이 됩니다. 이벤트가 오면 **Triggers**로 파이프라인을 시작합니다. 실행 이력은 **TaskRun/PipelineRun**으로 남습니다.
+Tekton은 **Step(컨테이너)**들이 모여 **Task(파드)**가 되고, Task들이 모여 **Pipeline**이 됩니다. 이벤트가 오면 **Triggers**로 파이프라인을 시작합니다. 실행 이력은 **TaskRun/PipelineRun**으로 남습니다.
 
 ### 6.1 Install Tekton
 
@@ -746,7 +745,7 @@ brew install tektoncd-cli
 tkn version
 ```
 
-> **포인트**: 버전을 섞어 설치하면 CRD 호환성 이슈가 납니다. 한 묶음(최신/이전)을 **맞춰** 설치하세요.
+* **포인트**: 버전을 섞어 설치하면 CRD 호환성 이슈가 납니다. 한 묶음(최신/이전)을 **맞춰** 설치하세요.
 
 ---
 
@@ -780,7 +779,7 @@ kubectl logs -l tekton.dev/task=hello -c step-echo
 kubectl delete taskruns --all
 ```
 
-> **포인트**: 하나의 Task는 파드로 실행되고, 각 **step**은 컨테이너로 실행됩니다.
+* **포인트**: 하나의 Task는 파드로 실행되고, 각 **step**은 컨테이너로 실행됩니다.
 
 ---
 
@@ -850,7 +849,7 @@ EOF
 kubectl delete pipelineruns.tekton.dev --all
 ```
 
-> **포인트**: `workspaces`는 Task 간 **파일 공유**에 쓰입니다. PVC를 자동 생성해 연결합니다.
+* **포인트**: `workspaces`는 Task 간 **파일 공유**에 쓰입니다. PVC를 자동 생성해 연결합니다.
 
 ---
 
@@ -972,7 +971,7 @@ EOF
 kubectl delete taskruns,pipelineruns.tekton.dev --all
 ```
 
-> **포인트**: `taskRunTemplate.serviceAccountName`로 런타임에 **자격 증명**을 주입합니다.
+* **포인트**: `taskRunTemplate.serviceAccountName`로 런타임에 **자격 증명**을 주입합니다.
 
 ---
 
@@ -1079,7 +1078,7 @@ EOF
 kubectl delete taskruns,pipelineruns.tekton.dev --all
 ```
 
-> **포인트**: Kaniko는 데몬 없이 이미지를 빌드/푸시합니다. 비공개 레포는 `docker-credentials`로 인증하세요.
+* **포인트**: Kaniko는 데몬 없이 이미지를 빌드/푸시합니다. 비공개 레포는 `docker-credentials`로 인증하세요.
 
 ---
 
@@ -1107,5 +1106,6 @@ kubectl delete taskruns,pipelineruns.tekton.dev --all
 helm uninstall pacman || true
 helm uninstall mypg || true
 kind delete cluster --name myk8s || true
+```
 kubectl delete taskruns,pipelineruns.tekton.dev --all --ignore-not-found
 ```
