@@ -2,46 +2,46 @@
 
 ## 목차
 
-* 전체 흐름
-* Jenkins 개요 & 기본 배포 순서
-* 파이프라인 핵심 개념 요약
-* 파이프라인 기본 예제
-* 필수 플러그인 & 자격증명
-* Jenkins CI: Docker Build & Push (VERSION 파일 사용)
-* Kubernetes 배포 (timeserver 예시)
-* Gogs Webhook
-* Jenkins: SCM 기반 Item (Jenkinsfile)
-* Jenkins 컨테이너에 kubectl/Helm 설치 & kubeconfig 사용
-* Blue/Green 배포 (echo-server)
-* Argo CD + Helm (nginx)
-* 트러블슈팅 체크
-* 테스트 리포트 수집(Reports) 전략
+* [전체 흐름](#flow)
+* [Jenkins 개요 & 기본 배포 순서](#jenkins-overview)
+* [파이프라인 핵심 개념 요약](#pipeline-concepts)
+* [파이프라인 기본 예제](#pipeline-examples)
+* [필수 플러그인 & 자격증명](#plugins-creds)
+* [Jenkins CI: Docker Build & Push](#jenkins-ci-docker)
+* [Kubernetes 배포 (timeserver 예시)](#k8s-timeserver)
+* [Gogs Webhook](#gogs-webhook)
+* [Jenkins: SCM 기반 Item (Jenkinsfile)](#jenkins-scm)
+* [Jenkins 컨테이너에 kubectl/Helm 설치 & kubeconfig 사용](#jenkins-kube-tools)
+* [Blue/Green 배포 (echo-server)](#bluegreen-echo)
+* [Argo CD + Helm (nginx)](#argocd-helm)
+* [트러블슈팅 체크](#troubleshooting)
+* [테스트 리포트 수집(Reports) 전략](#test-reports)
 
-  * JUnit/TestNG/PyTest XML 리포트
-  * 커버리지(JaCoCo/Cobertura)
-  * 정적분석·품질 게이트(선택)
-  * E2E(UI) 테스트 수집
-  * K8s 배포 검증 리포트
-* Helm Values 분리 전략
+  * [JUnit/TestNG/PyTest XML 리포트](#reports-junit)
+  * [커버리지(JaCoCo/Cobertura)](#reports-coverage)
+  * [정적분석·품질 게이트(선택)](#reports-static)
+  * [E2E(UI) 테스트 수집](#reports-e2e)
+  * [K8s 배포 검증 리포트](#reports-k8s)
+* [Helm Values 분리 전략](#helm-values)
 
-  * 디렉터리 구조 예시
-  * 분리 원칙
-  * ConfigMap 체크섬(롤링 업데이트 보장)
-  *  버전과 이미지 태그 전략
-  *  Argo CD와의 연계
-  * 시크릿 관리 권장
-* Argo Rollouts로 Canary/BlueGreen
+  * [디렉터리 구조 예시](#values-structure)
+  * [분리 원칙](#values-principles)
+  * [ConfigMap 체크섬(롤링 업데이트 보장)](#values-checksum)
+  * [버전과 이미지 태그 전략](#values-tags)
+  * [Argo CD와의 연계](#values-argo)
+  * [시크릿 관리 권장](#values-secrets)
+* [Argo Rollouts로 Canary/BlueGreen](#rollouts)
 
-  * 설치(요약)
-  * Canary 예시
-  * BlueGreen 예시
-  * 분석 템플릿(프로메테우스)
-  * Jenkins/Argo CD 연계 패턴
-  * 마이그레이션 팁
-* 부록) 체크리스트
-* 업데이트 이력
+  * [설치(요약)](#rollouts-install)
+  * [Canary 예시](#rollouts-canary)
+  * [BlueGreen 예시](#rollouts-bluegreen)
+  * [분석 템플릿(Prometheus 메트릭)](#rollouts-analysis)
+  * [Jenkins/Argo CD 연계 패턴](#rollouts-integration)
+  * [마이그레이션 팁](#rollouts-migrate)
 
 ---
+
+<a id="flow"></a>
 
 ## 1. 전체 흐름
 
@@ -54,6 +54,8 @@
 ```
 
 ---
+
+<a id="jenkins-overview"></a>
 
 ## 2. Jenkins 개요 & 기본 배포 순서
 
@@ -71,6 +73,8 @@ Jenkins는 Java 서블릿 컨테이너(Tomcat 등)에서 동작, Jenkinsfile DSL
 
 ---
 
+<a id="pipeline-concepts"></a>
+
 ## 3. 파이프라인 핵심 개념 요약
 
 * **Pipeline**: 전체 CI/CD 프로세스를 코드로 정의
@@ -87,6 +91,8 @@ Jenkins는 Java 서블릿 컨테이너(Tomcat 등)에서 동작, Jenkinsfile DSL
 * **Blue Ocean**(UI 구성 → Jenkinsfile 자동 생성)
 
 ---
+
+<a id="pipeline-examples"></a>
 
 ## 4. 파이프라인 기본 예제
 
@@ -183,6 +189,8 @@ pipeline {
 
 ---
 
+<a id="plugins-creds"></a>
+
 ## 4. 필수 플러그인 & 자격증명
 
 * **Plugins**: Pipeline: Stage View, Docker Pipeline, Gogs
@@ -192,6 +200,8 @@ pipeline {
   * `dockerhub-crd` (Kind: Username with password) → Docker Hub 비밀번호/토큰
 
 ---
+
+<a id="jenkins-ci-docker"></a>
 
 ## 5. Jenkins CI: Docker Build & Push 
 
@@ -238,6 +248,8 @@ pipeline {
 > Jenkins 컨테이너 사용 시 Docker 빌드는 Docker-in-Docker 또는 호스트 `/var/run/docker.sock` 마운트 등 구성이 필요합니다.
 
 ---
+
+<a id="k8s-timeserver"></a>
 
 ## 6. Kubernetes 배포 (timeserver 예시)
 
@@ -306,6 +318,8 @@ spec:
 
 ---
 
+<a id="gogs-webhook"></a>
+
 ## 7. Gogs Webhook
 
 `/data/gogs/conf/app.ini` 편집 후 컨테이너 재시작
@@ -320,6 +334,8 @@ LOCAL_NETWORK_ALLOWLIST = 192.168.45.251  # 각자 IP
 Gogs 리포지토리 Webhook → Jenkins/Argo CD 로 트리거.
 
 ---
+
+<a id="jenkins-scm"></a>
 
 ## 8. Jenkins: SCM 기반 Item (Jenkinsfile)
 
@@ -365,6 +381,8 @@ pipeline {
 
 ---
 
+<a id="jenkins-kube-tools"></a>
+
 ## 9. Jenkins 컨테이너에 kubectl/Helm 설치 & kubeconfig 사용
 
 ```bash
@@ -401,6 +419,8 @@ pipeline {
 ```
 
 ---
+
+<a id="bluegreen-echo"></a>
 
 ## 10. Blue/Green 배포 (echo-server)
 
@@ -513,6 +533,8 @@ pipeline {
 ```
 
 ---
+
+<a id="argocd-helm"></a>
 
 ## 11. Argo CD + Helm (nginx)
 
@@ -646,6 +668,8 @@ spec:
 
 ---
 
+<a id="troubleshooting"></a>
+
 ## 12. 트러블슈팅 체크
 
 * ImagePull 실패 → 레지스트리/이미지/태그/시크릿(`imagePullSecrets`) 확인
@@ -657,9 +681,13 @@ spec:
 
 ---
 
+<a id="test-reports"></a>
+
 ## 13. **테스트 리포트 수집(Reports) 전략**
 
 테스트 결과를 가시화하고 실패 시 빠른 원인 파악. 단위/통합/E2E/품질 분석까지 Jenkins 파이프라인에서 자동 수집·보존.
+
+<a id="reports-junit"></a>
 
 ### 1) JUnit·TestNG·PyTest XML 리포트
 
@@ -684,6 +712,8 @@ stage('Unit Test') {
 }
 ```
 
+<a id="reports-coverage"></a>
+
 ### 2) 커버리지(JaCoCo/Cobertura)
 
 * **생성**: Maven(`jacoco-maven-plugin`) 또는 Gradle(JaCoCo)
@@ -700,10 +730,14 @@ post {
 }
 ```
 
+<a id="reports-static"></a>
+
 ### 3) 정적분석·품질 게이트(선택)
 
 * **SonarQube**: `withSonarQubeEnv` + `sonar-maven-plugin`
 * **Warnings NG**: `recordIssues tools: [java(), maven()]`
+
+<a id="reports-e2e"></a>
 
 ### 4) E2E(UI) 테스트 수집 (Selenium/Cypress)
 
@@ -729,6 +763,8 @@ stage('E2E Test') {
 }
 ```
 
+<a id="reports-k8s"></a>
+
 ### 5) K8s 배포 검증 리포트(배포 로그/상태 저장)
 
 ```groovy
@@ -753,9 +789,13 @@ stage('Post-Deploy Checks') {
 
 ---
 
+<a id="helm-values"></a>
+
 ## 14. **Helm Values 분리 전략**
 
 > 목표: 공통 설정은 DRY하게, 환경별 차이는 최소 diff로 유지. GitOps/Argo CD와 자연스럽게 맞물리도록 구성.
+
+<a id="values-structure"></a>
 
 ### 1) 디렉터리 구조 예시
 
@@ -771,6 +811,8 @@ charts/
     templates/*.yaml
 ```
 
+<a id="values-principles"></a>
+
 ### 2) 분리 원칙
 
 * **values.yaml**(공통)
@@ -783,6 +825,8 @@ charts/
   * `image.tag`(릴리스 버전), `imagePullSecrets`, `service.type/ports`
   * 환경별 ConfigMap/Secret(민감정보는 SOPS/External Secrets 권장)
 
+<a id="values-checksum"></a>
+
 ### 3) ConfigMap 체크섬(롤링 업데이트 보장)
 
 ```yaml
@@ -792,15 +836,21 @@ metadata:
     checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
 ```
 
+<a id="values-tags"></a>
+
 ### 4) 버전과 이미지 태그 전략
 
 * **Chart.yaml**: `appVersion`을 애플리케이션 버전과 동기화
 * 배포 시: `--set-string image.tag=$VERSION` 또는 GitOps에서 values 파일에 커밋
 
+<a id="values-argo"></a>
+
 ### 5) Argo CD와의 연계
 
 * 환경별 **Application**을 분리하고 각기 다른 values 파일을 지정
 * 또는 **App of Apps** 패턴으로 여러 앱/환경을 관리
+
+<a id="values-secrets"></a>
 
 ### 6) 시크릿 관리 권장
 
@@ -809,14 +859,20 @@ metadata:
 
 ---
 
+<a id="rollouts"></a>
+
 ## 15. **Argo Rollouts로 Canary/BlueGreen**
 
 kubernetes `Deployment` 대신 `Rollout` 리소스를 사용하여 점진 배포와 자동 검증을 수행합니다.
+
+<a id="rollouts-install"></a>
 
 ### 1) 설치(요약)
 
 * Argo Rollouts 컨트롤러 배포(Helm 또는 kubectl)
 * 트래픽 라우팅: NGINX Ingress/ALB/Istio 등과 연동(가중치 조정 지원)
+
+<a id="rollouts-canary"></a>
 
 ### 2) Canary 예시(가중치 변경 + 수동/자동 승인)
 
@@ -859,6 +915,8 @@ spec:
 
 > Ingress/Service Mesh가 가중치 트래픽을 지원해야 합니다.
 
+<a id="rollouts-bluegreen"></a>
+
 ### 3) BlueGreen 예시(서비스 스위치)
 
 ```yaml
@@ -884,6 +942,8 @@ spec:
       autoPromotionEnabled: false   # 수동 승인 후 스위치
 ```
 
+<a id="rollouts-analysis"></a>
+
 ### 4) 분석 템플릿(예시: Prometheus 메트릭)
 
 ```yaml
@@ -906,15 +966,17 @@ spec:
           sum(rate(nginx_ingress_controller_requests{service=~"{{args.svc}}"}[1m]))
 ```
 
+<a id="rollouts-integration"></a>
+
 ### 5) Jenkins/Argo CD와의 연계 패턴
 
 * **Jenkins**: 이미지 빌드·푸시 → 차트 값/매니페스트에 버전 커밋 → GitOps 트리거
 * **Argo CD**: Rollout 리소스 동기화(Health 체크 지원) → 점진 배포/자동분석/자동롤백은 Rollouts가 처리
 * **수동 게이트**: Jenkins `input` 단계 또는 Argo Rollouts `pause` 단계로 승인 흐름 구성
 
+<a id="rollouts-migrate"></a>
+
 ### 6) 마이그레이션 팁
 
 * 기존 `Deployment` 스펙은 대부분 `Rollout`에 호환됨(필드명/경로만 변경)
 * 서비스 두 개(stable/canary 또는 active/preview)와 Ingress 가중치 라우팅을 미리 준비
-
-##
