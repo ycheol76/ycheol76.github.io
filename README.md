@@ -7,9 +7,8 @@
 
 * [1주차 - 컨테이너 빌드 & GitOps 실습](https://github.com/ycheol76/ycheol76.github.io/blob/main/1%EC%A3%BC%EC%B0%A8%20-%20Image%20Build.md)
 * [2주차 - Helm, Tekton 실습](https://github.com/ycheol76/ycheol76.github.io/blob/main/2%EC%A3%BC%EC%B0%A8%20-%20Helm%2C%20Tekton.md)
-
+* [3주차 - Jenkins + ArgoCD](https://github.com/ycheol76/ycheol76.github.io/blob/main/3%EC%A3%BC%EC%B0%A8%20-%20Jenkins%20%2B%20ArgoCD.md)
 ---
-
 ![](https://github.com/ycheol76/ycheol76.github.io/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-10-19%2008-09-28.png)
 ![](https://github.com/ycheol76/ycheol76.github.io/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-10-19%2008-10-57.png)
 ![](https://github.com/ycheol76/ycheol76.github.io/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-10-19%2008-11-06.png)
