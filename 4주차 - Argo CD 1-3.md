@@ -32,7 +32,7 @@
 2. 운영자는 클러스터에 직접 명령을 치기보다, **Git의 선언적 설정을 수정**한다.
 3. **오퍼레이터/에이전트**가 Git을 읽고 실제 시스템을 그 상태와 일치시키도록 **자동으로 조정(Reconcile)** 한다.
 
-## 1.2. GitOps 네 가지 원칙 (GitOps Principles)
+### 1.2. GitOps 네 가지 원칙 (GitOps Principles)
 
 CNCF GitOps Working Group은 GitOps를 다음 네 가지 원칙으로 설명한다. 이 원칙들을 이해하면, 다양한 도구(Argo CD, Flux 등)를 비교할 때도 기준점을 잡을 수 있다.
 
