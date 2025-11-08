@@ -1,8 +1,19 @@
-# 1. GitOps와 Kubernetes - 핵심 개념 & 학습 정리
 
-## 1.1 GitOps 개요
+## 목차
+1. [1장 GitOps & 쿠버네티스](#1장-gitops--쿠버네티스)
+2. [2장 Argo CD 기본](#2장-argo-cd-기본)
+3. [3장 Argo CD 운영](#3장-argo-cd-운영)
+4. [부록: 도전 과제 & 참고 링크](#부록-도전-과제--참고-링크)
 
-### 1-1. GitOps가 등장한 배경
+---
+
+## 1장 GitOps & 쿠버네티스
+
+### 1. GitOps와 Kubernetes - 핵심 개념 & 학습 정리
+
+#### 1.1 GitOps 개요
+
+##### 1.1.1. GitOps가 등장한 배경
 
 클라우드 네이티브 환경에서는 수많은 마이크로서비스와 인프라 설정이 얽혀 있어, 사람이 직접 명령을 입력하면서 운영하기가 점점 어려워졌다. 반면 애플리케이션 코드는 이미 **Git을 이용해 버전 관리, 코드 리뷰, CI/CD**를 적용하고 있었다.
 
@@ -12,7 +23,7 @@
 
 이 질문에 대한 해답으로 2017년 **Weaveworks**의 **Flux** 팀이 제시한 개념이 **GitOps**이다. 이후 CNCF 산하의 **GitOps Working Group**이 벤더 중립적인 정의와 원칙을 정리하며, GitOps는 하나의 표준적인 운영 패턴으로 자리 잡았다.
 
-### 1-2. GitOps 한 줄 정의
+##### 1.1.2. GitOps 한 줄 정의
 
 여러 정의가 존재하지만, 공통된 핵심은 다음 문장으로 요약할 수 있다.
 
@@ -26,11 +37,11 @@
 
 ---
 
-## 1.2. GitOps 네 가지 원칙 (GitOps Principles)
+### 1.2. GitOps 네 가지 원칙 (GitOps Principles)
 
 CNCF GitOps Working Group은 GitOps를 다음 네 가지 원칙으로 설명한다. 이 원칙들을 이해하면, 다양한 도구(Argo CD, Flux 등)를 비교할 때도 기준점을 잡을 수 있다.
 
-### 2-1. Declarative – 선언적 구성
+##### 1.2.1. Declarative – 선언적 구성
 
 **선언적 구성**이란, 시스템이 **“어떤 상태여야 하는지(Desired State)”만을 기술하고, 그 상태에 도달하는 절차는 기술하지 않는 것**을 의미한다.
 
@@ -43,7 +54,7 @@ CNCF GitOps Working Group은 GitOps를 다음 네 가지 원칙으로 설명한�
 * 파드가 5개면 2개를 종료해서,
   결국 **3개라는 원하는 상태에 맞추는 작업을 자동으로 수행**한다.
 
-### 2-2. Versioned and Immutable – 버전이 제어되는 불변 저장소
+##### 1.2.2. Versioned and Immutable – 버전이 제어되는 불변 저장소
 
 GitOps에서는 **Git과 같은 VCS를 인프라 정의의 저장소**로 사용한다. 이 저장소는 다음과 같은 특징을 갖는다.
 
@@ -53,7 +64,7 @@ GitOps에서는 **Git과 같은 VCS를 인프라 정의의 저장소**로 사용
 
 이로써 Git은 코드뿐 아니라 **인프라와 설정에 대한 단일 진실 공급원**이 된다.
 
-### 2-3. Pulled Automatically – 자동화된 배포
+##### 1.2.3. Pulled Automatically – 자동화된 배포
 
 GitOps의 핵심 중 하나는, **Git에 변경이 반영된 이후 운영자가 직접 클러스터에 명령을 치지 않는다는 점**이다.
 
@@ -65,7 +76,7 @@ GitOps의 핵심 중 하나는, **Git에 변경이 반영된 이후 운영자가
 
 운영자의 역할은 “Git의 선언적 정의를 고치는 것”이고, 실제 반영은 **자동화된 도구가 담당**한다.
 
-### 2-4. Continuously Reconciled – 폐쇄 루프(Continuous Reconciliation)
+##### 1.2.4. Continuously Reconciled – 폐쇄 루프(Continuous Reconciliation)
 
 마지막 원칙은 GitOps가 **일회성 배포가 아니라, 지속적으로 상태를 맞추는 컨트롤 루프**라는 점을 강조한다.
 
@@ -80,9 +91,9 @@ GitOps의 핵심 중 하나는, **Git에 변경이 반영된 이후 운영자가
 
 ---
 
-## 1.3. Kubernetes와 GitOps의 관계
+#### 1.3. Kubernetes와 GitOps의 관계
 
-### 3-1. CNCF와 커뮤니티 구조
+##### 1.3.1. CNCF와 커뮤니티 구조
 
 쿠버네티스가 빠르게 성장할 수 있었던 이유 중 하나는, 구글이 프로젝트를 공개한 뒤 **리눅스 재단과 함께 CNCF(Cloud Native Computing Foundation)를 설립**하여 중립적인 거버넌스를 구축했기 때문이다.
 
@@ -94,7 +105,7 @@ CNCF는 다음과 같은 원칙을 갖는다.
 
 이러한 구조 덕분에, 쿠버네티스와 그 주변 생태계(Argo CD, Flux, Prometheus 등)가 **개방적이고 활발한 커뮤니티 기반**으로 성장할 수 있었다. GitOps 역시 이 생태계 안에서 발전한 운영 패턴이다.
 
-### 3-2. Kubernetes 아키텍처와 컨트롤 루프
+##### 1.3.2. Kubernetes 아키텍처와 컨트롤 루프
 
 쿠버네티스는 종종 **“플랫폼을 만들기 위한 플랫폼”**이라고 불린다. 사용자는 다양한 컴포넌트를 조합해 자신만의 PaaS나 플랫폼을 구성할 수 있으며, GitOps는 이 위에 얹을 수 있는 하나의 패턴이다.
 
@@ -118,9 +129,9 @@ CNCF는 다음과 같은 원칙을 갖는다.
 
 ---
 
-## 1.4. 컨트롤러, 오퍼레이터, Argo CD
+#### 1.4. 컨트롤러, 오퍼레이터, Argo CD
 
-### 4-1. 컨트롤러(Controller)
+##### 1.4.1. 컨트롤러(Controller)
 
 컨트롤러는 쿠버네티스에서 **특정 리소스의 실제 상태를 감시하고, 원하는 상태와 일치하도록 조정하는 컴포넌트**이다.
 
@@ -138,7 +149,7 @@ CNCF는 다음과 같은 원칙을 갖는다.
 
 이 구조가 바로 **컨트롤 루프(Feedback Loop)** 이며, GitOps의 Continuous Reconciliation과도 연결된다.
 
-### 4-2. 오퍼레이터(Operator)
+##### 1.4.2. 오퍼레이터(Operator)
 
 오퍼레이터는 컨트롤러 패턴을 확장한 개념으로, **특정 도메인(예: 데이터베이스, 메시지 큐, 외부 시스템)에 대한 운영 지식을 코드로 담은 컨트롤러**라고 볼 수 있다.
 
@@ -147,7 +158,7 @@ CNCF는 다음과 같은 원칙을 갖는다.
 
   * 예: 데이터베이스 클러스터 생성/백업/복구 자동화, 외부 Git 리포지터리 연동 등.
 
-### 4-3. Argo CD
+##### 1.4.3. Argo CD
 
 **Argo CD**는 GitOps를 구현한 대표적인 도구이다. Argo CD는 다음과 같이 동작한다.
 
@@ -160,11 +171,11 @@ Git 리포지터리는 쿠버네티스 외부에 있는 시스템이므로, Argo
 
 ---
 
-## 1.5. 명령형 API vs 선언형 API
+#### 1.5. 명령형 API vs 선언형 API
 
 GitOps는 기본적으로 **선언형 API** 철학 위에 서 있다. 이를 이해하기 위해 먼저 쿠버네티스의 두 가지 사용 방식인 **명령형(Imperative)** 과 **선언형(Declarative)** 을 비교해 보자.
 
-### 5-1. 명령형(Imperative) 방식
+##### 1.5.1. 명령형(Imperative) 방식
 
 명령형 방식은 사용자가 **“지금 이 작업을 해라”** 라고 직접 지시하는 방식이다.
 
@@ -192,7 +203,7 @@ kubectl create -f namespace.yaml
 
 이미 존재하는 리소스를 교체할 때는 `kubectl replace`를 사용할 수 있다. 하지만 `replace`는 리소스를 **통째로 교체**하기 때문에, 중간에 다른 사람이 추가한 어노테이션/라벨 등의 변경사항이 덮어씌워져 사라질 수 있다. 즉, **사람이 절차를 직접 관리**해야 하고, 협업 시 충돌 가능성이 크다.
 
-### 5-2. 선언형(Declarative) 방식
+##### 1.5.2. 선언형(Declarative) 방식
 
 선언형 방식에서는 “네임스페이스가 어떤 상태여야 하는지”만 기술한다.
 
@@ -228,11 +239,11 @@ kubectl apply -f ./manifests/
 
 ---
 
-## 1.6. 간단한 GitOps 오퍼레이터 동작 원리
+#### 1.6. 간단한 GitOps 오퍼레이터 동작 원리
 
 GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추지 않더라도, 기본적으로 다음 세 가지 역할만 수행하면 된다.
 
-### 6-1. 오퍼레이터의 세 가지 핵심 동작
+##### 1.6.1. 오퍼레이터의 세 가지 핵심 동작
 
 1. **Git 리포지터리 동기화**
 
@@ -249,7 +260,7 @@ GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추�
    * 일정 주기(예: 5초)마다 위 과정을 반복한다.
    * Git의 선언된 상태와 클러스터의 실제 상태가 일치하는지 계속 확인하고, 차이가 있으면 수정한다.
 
-### 6-2. 예시: nginx 배포 관리
+##### 1.6.2. 예시: nginx 배포 관리
 
 예를 들어, `basic-gitops-operator-config`라는 리포지터리에 `namespace.yaml`과 `deployment.yaml`이 있다고 하자.
 
@@ -275,7 +286,7 @@ GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추�
 
 ---
 
-## 1.7. 요약
+#### 1.7. 요약
 
 지금까지의 내용을 정리하면 다음과 같다.
 
@@ -290,15 +301,11 @@ GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추�
   **“Git에 적힌 선언적 상태를 기준으로, 쿠버네티스 컨트롤 루프와 오퍼레이터를 이용해 인프라와 애플리케이션을 자동으로 운영하는 패턴이 GitOps이다.”**
 
 
-# 2. Argo CD - 핵심 개념 & 아키텍처 학습 정리
+## 2장 Argo CD 기본
 
-이 문서는 Argo CD의 배경, 핵심 개념, 아키텍처, 주요 리소스와 도구(Autopilot, CLI 등)를 한 번에 다시 복습할 수 있도록 정리한 학습 자료이다.
+#### 2.1. Argo CD란 무엇인가?
 
----
-
-## 2.1. Argo CD란 무엇인가?
-
-### 2.1.1. 배경: 환경 분리와 구성 드리프트 문제
+##### 2.1.1. 배경: 환경 분리와 구성 드리프트 문제
 
 전통적으로 애플리케이션은 다음과 같은 여러 환경으로 나누어 운영해 왔다.
 
@@ -324,7 +331,7 @@ GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추�
 * 어느 환경에 어느 버전을 배포했는지 **이력을 추적하기 어렵고**
 * 템플릿/값 파일 조합이 많아질수록 **관리 복잡도가 급격히 증가**한다.
 
-### 2.1.2. GitOps 관점에서 본 Argo CD
+##### 2.1.2. GitOps 관점에서 본 Argo CD
 
 GitOps 접근을 적용하면 상황이 달라진다.
 
@@ -339,7 +346,7 @@ GitOps 접근을 적용하면 상황이 달라진다.
 
 **Argo CD**가 바로 이런 역할을 수행하는 **GitOps 기반 쿠버네티스 CD(Continuous Delivery) 도구**이다.
 
-### 2.1.3. Argo CD의 특징 요약
+##### 2.1.3. Argo CD의 특징 요약
 
 Argo CD는 다음과 같은 특성을 가진다.
 
@@ -359,17 +366,17 @@ Argo Project 생태계에는 Argo CD 외에도 다음과 같은 도구들이 있
 
 ---
 
-## 2.2. Argo CD의 활용 사례
+#### 2.2. Argo CD의 활용 사례
 
 Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자주 사용된다.
 
-### 2.2.1. 배포 자동화 (Automated Deployment)
+##### 2.2.1. 배포 자동화 (Automated Deployment)
 
 * 깃 커밋 또는 CI 파이프라인이 완료되어 코드가 리포지터리에 반영되면,
 * Argo CD 컨트롤러가 변경 사항을 감지하고,
 * 클러스터를 **Git에 선언된 타깃 상태로 자동 동기화**한다.
 
-### 2.2.2. 관찰 가능성 (Observability)
+##### 2.2.2. 관찰 가능성 (Observability)
 
 * Web UI와 CLI를 통해 각 애플리케이션의
 
@@ -378,7 +385,7 @@ Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자
     를 직관적으로 확인할 수 있다.
 * **Argo CD Notifications** 엔진을 사용하면 상태 변경 시 알림(슬랙, 이메일 등)을 연동할 수 있다.
 
-### 2.2.3. 멀티 테넌시 (Multi-tenancy)
+##### 2.2.3. 멀티 테넌시 (Multi-tenancy)
 
 * RBAC 기반의 권한 관리를 통해 여러 팀/테넌트가 한 Argo CD 인스턴스를 공유하면서도
 
@@ -388,9 +395,9 @@ Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자
 
 ---
 
-## 2.3. 핵심 개념과 용어 정리
+#### 2.3. 핵심 개념과 용어 정리
 
-### 2.3.1. Reconciliation(조정)과 Sync
+##### 2.3.1. Reconciliation(조정)과 Sync
 
 Argo CD의 핵심은 **Reconciliation(조정)** 루프이다.
 
@@ -425,7 +432,7 @@ Argo CD의 핵심은 **Reconciliation(조정)** 루프이다.
 
   * 애플리케이션 리소스가 실제로 정상 동작 중인지(Ready, Healthy 등)를 나타냄
 
-### 2.3.2. Application, Source Type 등 기본 용어
+##### 2.3.2. Application, Source Type 등 기본 용어
 
 * **Application**
 
@@ -441,9 +448,9 @@ Argo CD의 핵심은 **Reconciliation(조정)** 루프이다.
 
 ---
 
-## 2.4. Argo CD 아키텍처
+#### 2.4. Argo CD 아키텍처
 
-### 2.4.1. 컨트롤러 기반 구조 개요
+##### 2.4.1. 컨트롤러 기반 구조 개요
 
 Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴**에 기반한다.
 
@@ -451,9 +458,9 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
 * 필요한 경우 변경 사항을 요청하여,
 * 현재 상태를 의도한 상태에 가깝게 유지한다.
 
-### 2.4.2. 주요 컴포넌트
+##### 2.4.2. 주요 컴포넌트
 
-#### (1) API 서버 (argocd-server)
+######## (1) API 서버 (argocd-server)
 
 * 역할
 
@@ -464,7 +471,7 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
   * Git 리포지터리 및 클러스터 관리
   * 인증/SSO, RBAC 정책 적용
 
-#### (2) 리포지터리 서버 (argocd-repo-server)
+######## (2) 리포지터리 서버 (argocd-repo-server)
 
 * Git 리포지터리에 저장된 애플리케이션 매니페스트를 **로컬 캐시**로 유지한다.
 * 다른 컴포넌트가 쿠버네티스 매니페스트를 필요로 할 때 Repo Server에 요청한다.
@@ -475,13 +482,13 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
   * 애플리케이션 경로(Path)
   * 템플릿 세부 설정 (Helm values, ksonnet env 등)
 
-#### (3) 애플리케이션 컨트롤러 (argocd-application-controller)
+######## (3) 애플리케이션 컨트롤러 (argocd-application-controller)
 
 * 애플리케이션의 현재 상태를 지속적으로 확인하고, Git 리포지터리의 의도한 상태와 비교한다.
 * 두 상태가 다를 경우 Sync를 수행하여 **현재 상태를 의도한 상태와 맞추려고 한다.**
 * 사용자가 정의한 **훅(Hook)** 리소스를 배포 생명주기(PreSync, Sync, PostSync 등)에 맞게 실행한다.
 
-### 2.4.3. 동기화 트리거 방식
+##### 2.4.3. 동기화 트리거 방식
 
 기본적으로 Argo CD는 **주기적인 폴링(기본 약 3분 간격)** 으로 Git 리포지터리를 확인하지만, 다음과 같은 방식으로 즉시 Sync를 트리거할 수 있다.
 
@@ -495,9 +502,9 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
 
 ---
 
-## 2.5. Argo CD의 핵심 리소스 & 자격 증명
+#### 2.5. Argo CD의 핵심 리소스 & 자격 증명
 
-### 2.5.1. Application CRD 예시
+##### 2.5.1. Application CRD 예시
 
 Argo CD는 실제 배포할 애플리케이션을 `Application` CRD로 표현한다.
 
@@ -521,7 +528,7 @@ spec:
 * `source`: Git/Helm 등 애플리케이션의 원천
 * `destination`: 어느 클러스터의 어느 네임스페이스에 배포할지
 
-### 2.5.2. AppProject – 애플리케이션 그룹화
+##### 2.5.2. AppProject – 애플리케이션 그룹화
 
 `AppProject` CRD는 관련 있는 애플리케이션들을 논리적으로 그룹화하고, 다음을 제어하는 데 사용된다.
 
@@ -531,7 +538,7 @@ spec:
 
 이를 통해 팀/환경별 프로젝트를 분리하고, 프로젝트 단위로 정책을 설정할 수 있다.
 
-### 2.5.3. 리포지터리 자격 증명 (Repository Credentials)
+##### 2.5.3. 리포지터리 자격 증명 (Repository Credentials)
 
 실제 환경에서는 대부분 **프라이빗 Git 리포지터리**를 사용하므로, Argo CD는 해당 리포지터리에 접근하기 위한 자격 증명이 필요하다.
 
@@ -539,7 +546,7 @@ spec:
 * Secret에는 `argocd.argoproj.io/secret-type: repository` 라벨을 붙여, Argo CD가 이를 “저장소 자격 증명”으로 인식하게 한다.
 * HTTPS, SSH 방식 모두 지원하며, URL과 토큰/SSH Key 등을 `stringData`에 설정한다.
 
-### 2.5.4. 클러스터 자격 증명 (Cluster Credentials)
+##### 2.5.4. 클러스터 자격 증명 (Cluster Credentials)
 
 Argo CD가 여러 클러스터(예: dev-cluster, prod-cluster)를 관리하려면, 대상 클러스터에 접근하기 위한 자격 증명이 필요하다.
 
@@ -550,9 +557,9 @@ Argo CD가 여러 클러스터(예: dev-cluster, prod-cluster)를 관리하려�
 
 ---
 
-## 2.6. Argo CD 설치 & 첫 애플리케이션 배포 (Helm + Guestbook)
+#### 2.6. Argo CD 설치 & 첫 애플리케이션 배포 (Helm + Guestbook)
 
-### 2-6-1. Helm으로 Argo CD 설치
+##### 2-6-1. Helm으로 Argo CD 설치
 
 실습에서는 Helm Chart를 이용해 Argo CD를 설치했다.
 
@@ -566,7 +573,7 @@ Argo CD가 여러 클러스터(예: dev-cluster, prod-cluster)를 관리하려�
 
 이 과정을 통해 `applications.argoproj.io`, `appprojects.argoproj.io` 등의 CRD와 Argo CD 컴포넌트가 설치된다.
 
-### 2-6-2. Guestbook 예제 애플리케이션 배포
+##### 2-6-2. Guestbook 예제 애플리케이션 배포
 
 Helm 기반 Guestbook 예제를 `Application` CRD로 생성하여 자동 배포를 실습했다.
 
@@ -579,7 +586,7 @@ Helm 기반 Guestbook 예제를 `Application` CRD로 생성하여 자동 배포�
   * `syncPolicy.automated.selfHeal: true` – 클러스터에서 수동 변경 시 Git 상태로 복구
   * `syncOptions: [CreateNamespace=true]` – 대상 네임스페이스가 없으면 자동 생성
 
-#### SelfHeal 동작 예시
+######## SelfHeal 동작 예시
 
 1. Guestbook Service를 수동으로 `NodePort`로 변경
 2. Argo CD가 이를 “Git 상태와 다른 Live 상태”로 인식
@@ -590,9 +597,9 @@ Helm 기반 Guestbook 예제를 `Application` CRD로 생성하여 자동 배포�
 
 ---
 
-## 2.7. Argo CD CLI 요약
+#### 2.7. Argo CD CLI 요약
 
-### 2.7.1. CLI 설치 및 로그인
+##### 2.7.1. CLI 설치 및 로그인
 
 * macOS: `brew install argocd`
 * Linux/WSL: 릴리스 바이너리를 직접 다운로드 후 `/usr/local/bin/argocd`로 설치
@@ -615,7 +622,7 @@ Password: <초기 비밀번호>
 
 > 실무에서는 admin 계정은 초기 설정에만 사용하고, 로컬 사용자/SSO 계정 및 토큰을 활용해 CI 시스템과 연동하는 것이 권장된다.
 
-### 2.7.2. CLI로 애플리케이션 생성 (주의점)
+##### 2.7.2. CLI로 애플리케이션 생성 (주의점)
 
 CLI로도 애플리케이션을 만들 수 있다.
 
@@ -637,7 +644,7 @@ argocd app create guestbook \
 
 ---
 
-## 2.8. Argo CD Web-based Terminal 설정
+#### 2.8. Argo CD Web-based Terminal 설정
 
 Argo CD UI에서는 리소스 상세 화면에서 **Terminal 탭**을 통해 컨테이너 쉘에 접속할 수 있다. 이를 사용하려면 다음과 같은 설정이 필요하다.
 
@@ -648,9 +655,9 @@ Argo CD UI에서는 리소스 상세 화면에서 **Terminal 탭**을 통해 컨
 
 ---
 
-## 2.9. Argo CD Autopilot
+#### 2.9. Argo CD Autopilot
 
-### 2.9.1. 배경: “닭이 먼저냐, 달걀이 먼저냐” 문제
+##### 2.9.1. 배경: “닭이 먼저냐, 달걀이 먼저냐” 문제
 
 Argo CD 자체도 결국 **쿠버네티스 애플리케이션**이므로, GitOps 원칙에 따라 Argo CD의 설치·구성 자체를 Git으로 관리하고 싶다. 하지만 처음 Argo CD를 설치할 때는 아직 Argo CD가 없기 때문에, 다음과 같은 순환 문제가 생긴다.
 
@@ -659,7 +666,7 @@ Argo CD 자체도 결국 **쿠버네티스 애플리케이션**이므로, GitOps
 
 이 문제를 해결하기 위해 등장한 도구가 **Argo CD Autopilot**이다.
 
-### 2.9.2. Autopilot의 역할
+##### 2.9.2. Autopilot의 역할
 
 Argo CD Autopilot은 다음을 자동화한다.
 
@@ -677,7 +684,7 @@ Autopilot의 핵심 아이디어:
 3. 사용자는 Autopilot CLI로 프로젝트와 애플리케이션을 생성하면 되고, Autopilot은 이에 해당하는 매니페스트를 Git에 커밋한다.
 4. 커밋이 완료되면 Argo CD가 자동으로 애플리케이션을 클러스터에 배포한다.
 
-### 2.9.3. 디렉터리 구조 & App of Apps 패턴
+##### 2.9.3. 디렉터리 구조 & App of Apps 패턴
 
 Autopilot이 구성하는 대표적인 디렉터리 구조:
 
@@ -702,7 +709,7 @@ Autopilot이 구성하는 대표적인 디렉터리 구조:
 
 이처럼 **Application이 다른 Application들을 생성·관리하는 구조**를 **App of Apps 패턴**이라고 부른다. 이 패턴을 사용하면 애플리케이션 그룹 전체를 선언적으로 관리할 수 있다.
 
-### 2.9.4. Project & Application 생성 흐름
+##### 2.9.4. Project & Application 생성 흐름
 
 Autopilot CLI를 사용하면 다음과 같이 Project와 Application을 쉽게 만들 수 있다.
 
@@ -719,11 +726,11 @@ Autopilot CLI를 사용하면 다음과 같이 Project와 Application을 쉽게 
 
 ---
 
-## 2.10. 동기화 원리 – Hook, Sync Waves, Sync Windows
+#### 2.10. 동기화 원리 – Hook, Sync Waves, Sync Windows
 
 Argo CD의 Sync는 단순히 `kubectl apply`를 한 번 실행하는 것이 아니라, **여러 단계와 순서 제어 기능**을 가진다.
 
-### 2.10.1. 리소스 훅(Resource Hooks)
+##### 2.10.1. 리소스 훅(Resource Hooks)
 
 동기화 과정은 크게 다음 세 단계로 나뉜다.
 
@@ -749,7 +756,7 @@ metadata:
 
 예를 들어, 데이터베이스 스키마 마이그레이션 Job을 PreSync 훅으로 지정하면, 본격적인 애플리케이션 배포 전에 마이그레이션 작업이 완료되도록 할 수 있다.
 
-### 2.10.2. 동기화 웨이브(Sync Waves)
+##### 2.10.2. 동기화 웨이브(Sync Waves)
 
 동일한 훅 단계(PreSync/Sync/PostSync) 안에서도 **리소스 간 실행 순서**를 제어하고 싶을 때 **Sync Wave**를 사용한다.
 
@@ -779,7 +786,7 @@ Argo CD는 Sync 시 다음 순서로 리소스를 정렬하여 처리한다.
 * Sync Wave 1: Deployment, Service
 * PostSync Wave 0: Smoke Test Job
 
-### 2.10.3. 동기화 윈도(Sync Windows)
+##### 2.10.3. 동기화 윈도(Sync Windows)
 
 **Sync Window**를 사용하면 특정 시간대에 동기화를 허용 또는 차단할 수 있다.
 
@@ -819,7 +826,7 @@ argocd proj windows list PROJECT
 
 ---
 
-## 2.11. 요약
+#### 2.11. 요약
 
 1. **Argo CD**는 GitOps 방식으로 쿠버네티스 애플리케이션을 배포·관리하는 **선언적 CD 도구**이다.
 2. Git 리포지터리의 **타깃 상태(Target State)** 와 클러스터의 **현재 상태(Live State)** 를 비교하고, 컨트롤러를 통해 **지속적으로 조정(Reconciliation)** 한다.
@@ -828,12 +835,13 @@ argocd proj windows list PROJECT
 5. Autopilot을 사용하면 Argo CD 자체 설치/구성도 GitOps로 관리할 수 있고, App of Apps 패턴을 통해 대규모 애플리케이션 그룹을 구조적으로 관리할 수 있다.
 6. Hook, Sync Wave, Sync Window 기능을 활용하면 **배포 순서·단계·시간대**를 정교하게 제어할 수 있다.
 
+## 3장 Argo CD 운영
 
-# 3장 Argo CD 운영 요약
+### 3장 Argo CD 운영 요약
 
 ---
 
-## 3.1. 목표
+#### 3.1. 목표
 
 * Argo CD를 **고가용성(HA) 모드**로 설치하고 운영 패턴 이해
 * GitOps 방식으로 **Argo CD 자신을 관리(Self-managing)**하는 구조 익히기
@@ -842,9 +850,9 @@ argocd proj windows list PROJECT
 
 ---
 
-## 3.2. 실습 인프라 & HA 설치
+#### 3.2. 실습 인프라 & HA 설치
 
-### 3.2.1. kind 클러스터 구성
+##### 3.2.1. kind 클러스터 구성
 
 * kind 클러스터 이름: `myk8s`
 * 노드 구성
@@ -856,7 +864,7 @@ argocd proj windows list PROJECT
   * 서비스 타입: NodePort(30001)
   * 클러스터/노드 상태를 웹으로 시각화
 
-### 3.2.2. Argo CD HA 아키텍처 개념
+##### 3.2.2. Argo CD HA 아키텍처 개념
 
 * **핵심 포인트**
 
@@ -877,7 +885,7 @@ argocd proj windows list PROJECT
   | argocd-notifications-controller   | Deployment             | 1+     | 알림 처리(Slack/Webhook 등)                |
   | argocd-application-set-controller | Deployment             | 1+     | 다수 Application 자동 생성                  |
 
-### 3.2.3. HA 매니페스트로 설치 흐름
+##### 3.2.3. HA 매니페스트로 설치 흐름
 
 1. `argocd` 네임스페이스 생성
 2. 공식 HA 매니페스트(`manifests/ha/install.yaml`) 적용
@@ -885,7 +893,7 @@ argocd proj windows list PROJECT
    `argocd-initial-admin-secret`에서 초기 비밀번호 조회
 4. 설치에 사용한 `resources/` 폴더를 Git에 커밋 → 이후 GitOps로 관리 가능
 
-### 3.2.4. Kustomize 설치 시도 & OOMKilled 이슈
+##### 3.2.4. Kustomize 설치 시도 & OOMKilled 이슈
 
 * `ch03/kustomize-installation` 예제로 HA 구성 시도
 * 리소스 부족 환경에서 `argocd-redis-ha-haproxy`가
@@ -897,9 +905,9 @@ argocd proj windows list PROJECT
 
 ---
 
-## 3.3. Argo CD Self-managing (자기 자신을 GitOps로 관리)
+#### 3.3. Argo CD Self-managing (자기 자신을 GitOps로 관리)
 
-### 3.3.1. Argo CD를 Application으로 등록
+##### 3.3.1. Argo CD를 Application으로 등록
 
 1. Argo CD UI → **Settings → Repositories** 에 자신의 Git Repo 등록
 2. Repo 내 `resources/` 폴더에 Argo CD 설치 매니페스트 저장
@@ -930,7 +938,7 @@ spec:
   * Argo CD의 설치/설정/업그레이드가 **Argo CD 애플리케이션**으로 관리됨
   * 설정 변경은 **Git에 커밋 → PR 리뷰 → Merge → 자동 반영** 흐름으로 운영 가능
 
-### 3.3.2. 설정 변경 예시 – NetworkPolicy 삭제
+##### 3.3.2. 설정 변경 예시 – NetworkPolicy 삭제
 
 * 현재 배포된 `argocd-*` NetworkPolicy 리소스 확인
 * Git 저장소의 `resources` 안에서 NetworkPolicy 관련 매니페스트 삭제 → 커밋 & 푸시
@@ -943,9 +951,9 @@ spec:
 
 ---
 
-## 3.4. 관찰 가능성(Observability) 기초 개념
+#### 3.4. 관찰 가능성(Observability) 기초 개념
 
-### 3.4.1. 모니터링 vs 관측 가능성
+##### 3.4.1. 모니터링 vs 관측 가능성
 
 | 구분모니터링(Monitoring)관측 가능성(Observability) |                        |                                |
 | --------------------------------------- | ---------------------- | ------------------------------ |
@@ -963,7 +971,7 @@ spec:
   * "**왜** 문제가 발생했는지"를 다양한 데이터로 분석
   * 특히 마이크로서비스/분산 시스템에서 필수
 
-### 3.4.2. 메트릭 / 로그 / 트레이스
+##### 3.4.2. 메트릭 / 로그 / 트레이스
 
 | 항목메트릭(Metrics)로그(Logs)추적(Tracing) |                     |                |                 |
 | --------------------------------- | ------------------- | -------------- | --------------- |
@@ -971,7 +979,7 @@ spec:
 | 예                                 | CPU, 메모리, 요청 수, 에러율 | 에러 스택, 접근 로그 등 | A→B→C 서비스 호출 경로 |
 | 목적                                | 상태·성능 추세, 알람        | 디버깅, 상세 원인 파악  | 병목 구간, 지연 구간 파악 |
 
-### 3.4.3. SLI / SLO / SLA 개념
+##### 3.4.3. SLI / SLO / SLA 개념
 
 * **SLI**: 측정 값 (예: 지난 30일 가용성 99.93%)
 * **SLO**: 목표 값 (예: 가용성 99.9% 이상 유지)
@@ -981,9 +989,9 @@ spec:
 
 ---
 
-## 3.5. Prometheus & kube-prometheus-stack
+#### 3.5. Prometheus & kube-prometheus-stack
 
-### 3.5.1. Prometheus 개요
+##### 3.5.1. Prometheus 개요
 
 * 오픈소스 **모니터링 + 알림 툴킷**
 * 특징
@@ -994,7 +1002,7 @@ spec:
   * Service Discovery / Static 설정 모두 지원
   * Alertmanager, Exporter, Pushgateway 등 다양한 생태계
 
-### 3.5.2. kube-prometheus-stack 설치
+##### 3.5.2. kube-prometheus-stack 설치
 
 * Helm Chart: `prometheus-community/kube-prometheus-stack`
 * 주요 설정
@@ -1012,7 +1020,7 @@ spec:
 
     * `Prometheus`, `ServiceMonitor`, `PodMonitor` 등을 선언적으로 관리
 
-### 3.5.3. Argo CD 메트릭 수집 – ServiceMonitor
+##### 3.5.3. Argo CD 메트릭 수집 – ServiceMonitor
 
 * Argo CD는 각 컴포넌트별 `/metrics` 엔드포인트 제공
 
@@ -1030,7 +1038,7 @@ spec:
   * Prometheus Targets에 `argocd-*` 엔드포인트가 Healthy 상태로 나타남
   * `argo_` / `argocd_` 로 시작하는 메트릭 조회 가능
 
-### 3.5.4. Grafana 대시보드 추가
+##### 3.5.4. Grafana 대시보드 추가
 
 * Argo CD 공식 예제 대시보드 JSON 사용
 
@@ -1043,9 +1051,9 @@ spec:
 
 ---
 
-## 3.6. 운영 시 중요한 Argo CD 메트릭
+#### 3.6. 운영 시 중요한 Argo CD 메트릭
 
-### 3.6.1. OOMKilled & 리소스 이슈
+##### 3.6.1. OOMKilled & 리소스 이슈
 
 * 실무에서 **가장 자주 보는 경고** 중 하나
 * 컨테이너가 너무 많은 메모리를 사용 → **노드 OOM Killer**가 컨테이너 종료
@@ -1074,9 +1082,9 @@ spec:
 
 ---
 
-## 3.7. 백업 & 재해 복구 (Disaster Recovery)
+#### 3.7. 백업 & 재해 복구 (Disaster Recovery)
 
-### 3.7.1. Argo CD 상태 백업
+##### 3.7.1. Argo CD 상태 백업
 
 * `argocd admin export -n argocd > backup.yaml`
 
@@ -1086,13 +1094,13 @@ spec:
   * `argocd login` 으로 API 서버에 로그인 필요
   * `argocd cluster list`, `argocd app list` 로 현재 상태 확인 가능
 
-### 3.7.2. 새 클러스터 준비 & HA 설치
+##### 3.7.2. 새 클러스터 준비 & HA 설치
 
 1. `kind`로 새 클러스터 `myk8s2` 생성 (포트 31000~31003 노출)
 2. 기존과 동일한 방식으로 `resources/namespace.yaml`, `resources/install.yaml` 적용 → HA Argo CD 설치
 3. 새 클러스터의 Argo CD 서버 포트포워딩(8081 등) 후 접속, 초기 admin 비밀번호 확인
 
-### 3.7.3. 새 클러스터에서 복원(import)
+##### 3.7.3. 새 클러스터에서 복원(import)
 
 1. 새 클러스터의 Argo CD에 로그인
 2. `argocd admin import -n argocd - < backup.yaml`
@@ -1103,5 +1111,4 @@ spec:
    * 기존처럼 `guestbook` 등 애플리케이션도 자동 동기화
 
 > 주의: admin 비밀번호도 **백업 시점 값으로 덮어써짐** → 로그인 정보 변경에 유의.
-
 > 이 장의 핵심: **Argo CD 자체를 GitOps로 운영 + HA + 관찰 가능성 + 백업/복원**까지 구축해야 실제 운영에서 쓸 수 있는 GitOps 플랫폼이 된다.
