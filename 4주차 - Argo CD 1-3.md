@@ -348,7 +348,7 @@ Argo Project 생태계에는 Argo CD 외에도 다음과 같은 도구들이 있
 * **Argo Events** – 이벤트 기반 워크플로우 트리거
 * **Argo Workflows** – 워크플로우/배치 파이프라인 오케스트레이션
 
----
+
 
 ### 2.2. Argo CD의 활용 사례
 
@@ -377,7 +377,7 @@ Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자
   * 서로의 권한을 침범하지 않도록 제어할 수 있다.
 * 여러 클러스터(Dev, Stage, Prod 등)에 대한 배포도 한 곳에서 관리 가능하다.
 
----
+
 
 ### 2.3. 핵심 개념과 용어 정리
 
@@ -430,7 +430,7 @@ Argo CD의 핵심은 **Reconciliation(조정)** 루프이다.
 
 이러한 개념들을 통해 Argo CD는 “Git에 선언된 애플리케이션”을 쿠버네티스 클러스터에 일관성 있게 유지한다.
 
----
+
 
 ### 2.4. Argo CD 아키텍처
 
@@ -484,7 +484,7 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
 
    * GitHub, GitLab, Bitbucket, Gogs 등의 Webhook을 구성하여 커밋/PR 머지 시 Argo CD에 알림 → 즉시 동기화
 
----
+
 
 ### 2.5. Argo CD의 핵심 리소스 & 자격 증명
 
@@ -539,7 +539,7 @@ Argo CD가 여러 클러스터(예: dev-cluster, prod-cluster)를 관리하려�
 * 내부에는 `server`(API 서버 URL), 인증 토큰, CA 인증서 정보 등이 포함된다.
 * CLI를 사용하면 `argocd cluster add CONTEXT_NAME` 처럼 간단히 등록할 수도 있다.
 
----
+
 
 ### 2.6. Argo CD 설치 & 첫 애플리케이션 배포 (Helm + Guestbook)
 
@@ -579,7 +579,7 @@ Helm 기반 Guestbook 예제를 `Application` CRD로 생성하여 자동 배포�
 
 이 과정은 “Git이 진실의 근원이며, 수동 변경은 결국 Git 상태에 의해 덮어쓰기 된다”는 GitOps의 특징을 잘 보여준다.
 
----
+
 
 ### 2.7. Argo CD CLI 요약
 
@@ -626,7 +626,7 @@ argocd app create guestbook \
 
 따라서 학습/디버깅 용도로는 유용하지만, 실제 운영 환경에서는 **Application CRD를 Git에 두고 관리하는 방식**을 우선 고려해야 한다.
 
----
+
 
 ### 2.8. Argo CD Web-based Terminal 설정
 
@@ -637,7 +637,7 @@ Argo CD UI에서는 리소스 상세 화면에서 **Terminal 탭**을 통해 컨
 
 이후 UI에서 파드를 선택하고 **TERMINAL** 버튼을 누르면, 웹 기반 터미널을 통해 컨테이너 내부 쉘에 접근할 수 있다.
 
----
+
 
 ### 2.9. Argo CD Autopilot
 
@@ -708,7 +708,7 @@ Autopilot CLI를 사용하면 다음과 같이 Project와 Application을 쉽게 
 
 이때 Autopilot은 내부적으로 Git 리포지터리에 필요한 매니페스트를 커밋하고, Argo CD는 이를 기준으로 애플리케이션을 배포한다.
 
----
+
 
 ### 2.10. 동기화 원리 – Hook, Sync Waves, Sync Windows
 
@@ -808,7 +808,7 @@ argocd proj windows list PROJECT
 
 이를 통해 **배포 가능 시간대와 금지 시간대**를 프로젝트 단위로 제어할 수 있다.
 
----
+
 
 ### 2.11. 요약
 
@@ -854,7 +854,7 @@ argocd proj windows list PROJECT
 * 주요 컴포넌트 역할
 
   | 컴포넌트타입권장 Replica역할                |                        |        |                                       |
-  | --------------------------------- | ---------------------- | ------ | ------------------------------------- |
+  |  | - |  | - |
   | argocd-server                     | Deployment             | 2+     | UI & API 서버 (사용자/CI 진입점)              |
   | argocd-repo-server                | Deployment             | 2+     | Git에서 매니페스트 가져와 렌더링(Helm/Kustomize 등) |
   | argocd-application-controller     | StatefulSet            | 2+     | Git ↔ Cluster 상태 비교, 동기화 수행           |
@@ -881,7 +881,7 @@ argocd proj windows list PROJECT
   * HA 구성은 리소스 소비가 크므로 **테스트 환경에서는 replica/resource 조정** 필요
   * `kustomize`로 설치해도 결국 동일한 HA 리소스가 생성 → 노드 스펙 고려 필수
 
----
+
 
 ### 3.3. Argo CD Self-managing (자기 자신을 GitOps로 관리)
 
@@ -927,14 +927,14 @@ spec:
 
 > 포인트: **Argo CD 자신의 보안/네트워크/리소스 설정까지 GitOps 대상으로 만든다**는 게 핵심.
 
----
+
 
 ### 3.4. 관찰 가능성(Observability) 기초 개념
 
 #### 3.4.1. 모니터링 vs 관측 가능성
 
 | 구분모니터링(Monitoring)관측 가능성(Observability) |                        |                                |
-| --------------------------------------- | ---------------------- | ------------------------------ |
+|  | - |  |
 | 정의                                      | 특정 메트릭을 미리 정해놓고 계속 감시  | 외부 출력(로그/메트릭/트레이스)로 내부 상태를 추론  |
 | 목표                                      | 장애·이상 감지 & 알림          | 원인 분석·최적화, “왜”를 답하는 것          |
 | 데이터                                     | CPU, 메모리, 에러율 등 정해진 수치 | 로그, 메트릭, 트레이스, 이벤트 등 풍부한 텔레메트리 |
@@ -952,7 +952,7 @@ spec:
 #### 3.4.2. 메트릭 / 로그 / 트레이스
 
 | 항목메트릭(Metrics)로그(Logs)추적(Tracing) |                     |                |                 |
-| --------------------------------- | ------------------- | -------------- | --------------- |
+|  | - | -- |  |
 | 형태                                | 숫자(time series)     | 텍스트/구조화 이벤트    | 요청 흐름(스팬·트레이스)  |
 | 예                                 | CPU, 메모리, 요청 수, 에러율 | 에러 스택, 접근 로그 등 | A→B→C 서비스 호출 경로 |
 | 목적                                | 상태·성능 추세, 알람        | 디버깅, 상세 원인 파악  | 병목 구간, 지연 구간 파악 |
@@ -965,7 +965,7 @@ spec:
 
 > 운영에서는 **SLI를 잘 선택하고, 현실적인 SLO를 잡은 뒤, SLA는 비즈니스와 협의**하는 구조.
 
----
+
 
 ### 3.5. Prometheus & kube-prometheus-stack
 
@@ -1027,7 +1027,7 @@ spec:
   * Application 개수, Sync 상태, Health 상태
   * Controller/Repo-server/Server의 메트릭 및 에러율
 
----
+
 
 ### 3.6. 운영 시 중요한 Argo CD 메트릭
 
@@ -1058,7 +1058,6 @@ spec:
 
 > 특히 동시 배포가 몰릴 때만 터지는 이슈라면, 메트릭과 배포 타이밍을 함께 보는 것이 중요.
 
----
 
 ### 3.7. 백업 & 재해 복구 (Disaster Recovery)
 
@@ -1090,4 +1089,3 @@ spec:
 
 > 주의: admin 비밀번호도 **백업 시점 값으로 덮어써짐** → 로그인 정보 변경에 유의.
 > 이 장의 핵심: **Argo CD 자체를 GitOps로 운영 + HA + 관찰 가능성 + 백업/복원**까지 구축해야 실제 운영에서 쓸 수 있는 GitOps 플랫폼이 된다.
-
