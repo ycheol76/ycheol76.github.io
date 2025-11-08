@@ -1,4 +1,5 @@
 ## 목차
+
 1. [1장 GitOps & 쿠버네티스](#1장-gitops--쿠버네티스)
 2. [2장 Argo CD 기본](#2장-argo-cd-기본)
 3. [3장 Argo CD 운영](#3장-argo-cd-운영)
@@ -220,8 +221,8 @@ kubectl apply -f ./manifests/
 
 이 개념을 더 확장하면 다음과 같은 생각으로 이어진다.
 
-> “로컬 폴더 대신 **Git 리포지터리**를 기준으로 삼고,
-> 사람이 직접 `kubectl apply`를 하는 대신, **오퍼레이터가 주기적으로 Git을 읽어 자동으로 apply 해주면 어떨까?”
+> "로컬 폴더 대신 **Git 리포지터리**를 기준으로 삼고,
+> 사람이 직접 `kubectl apply`를 하는 대신, **오퍼레이터가 주기적으로 Git을 읽어 자동으로 apply 해주면 어떨까?"
 
 이 아이디어가 바로 **GitOps 오퍼레이터의 기본 원리**이다.
 
@@ -283,7 +284,6 @@ GitOps 오퍼레이터는 Argo CD, Flux처럼 복잡한 기능을 모두 갖추�
 
 * 한 문장으로 표현하면:
   **“Git에 적힌 선언적 상태를 기준으로, 쿠버네티스 컨트롤 루프와 오퍼레이터를 이용해 인프라와 애플리케이션을 자동으로 운영하는 패턴이 GitOps이다.”**
-
 
 ## 2장 Argo CD 기본
 
@@ -348,8 +348,6 @@ Argo Project 생태계에는 Argo CD 외에도 다음과 같은 도구들이 있
 * **Argo Events** – 이벤트 기반 워크플로우 트리거
 * **Argo Workflows** – 워크플로우/배치 파이프라인 오케스트레이션
 
-
-
 ### 2.2. Argo CD의 활용 사례
 
 Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자주 사용된다.
@@ -376,8 +374,6 @@ Argo CD는 GitOps 철학을 바탕으로 다음과 같은 시나리오에서 자
   * 서로 다른 프로젝트로 애플리케이션을 분리하고
   * 서로의 권한을 침범하지 않도록 제어할 수 있다.
 * 여러 클러스터(Dev, Stage, Prod 등)에 대한 배포도 한 곳에서 관리 가능하다.
-
-
 
 ### 2.3. 핵심 개념과 용어 정리
 
@@ -430,8 +426,6 @@ Argo CD의 핵심은 **Reconciliation(조정)** 루프이다.
 
 이러한 개념들을 통해 Argo CD는 “Git에 선언된 애플리케이션”을 쿠버네티스 클러스터에 일관성 있게 유지한다.
 
-
-
 ### 2.4. Argo CD 아키텍처
 
 #### 2.4.1. 컨트롤러 기반 구조 개요
@@ -483,8 +477,6 @@ Argo CD의 주요 구성 요소는 모두 **쿠버네티스 컨트롤러 패턴*
 3. **Webhook** 연동
 
    * GitHub, GitLab, Bitbucket, Gogs 등의 Webhook을 구성하여 커밋/PR 머지 시 Argo CD에 알림 → 즉시 동기화
-
-
 
 ### 2.5. Argo CD의 핵심 리소스 & 자격 증명
 
@@ -539,8 +531,6 @@ Argo CD가 여러 클러스터(예: dev-cluster, prod-cluster)를 관리하려�
 * 내부에는 `server`(API 서버 URL), 인증 토큰, CA 인증서 정보 등이 포함된다.
 * CLI를 사용하면 `argocd cluster add CONTEXT_NAME` 처럼 간단히 등록할 수도 있다.
 
-
-
 ### 2.6. Argo CD 설치 & 첫 애플리케이션 배포 (Helm + Guestbook)
 
 #### 2-6-1. Helm으로 Argo CD 설치
@@ -578,8 +568,6 @@ Helm 기반 Guestbook 예제를 `Application` CRD로 생성하여 자동 배포�
 4. 실습에서는 SelfHeal을 끈 뒤(NodePort 유지), 외부에서 `curl` 또는 브라우저로 접속을 확인했다.
 
 이 과정은 “Git이 진실의 근원이며, 수동 변경은 결국 Git 상태에 의해 덮어쓰기 된다”는 GitOps의 특징을 잘 보여준다.
-
-
 
 ### 2.7. Argo CD CLI 요약
 
@@ -626,8 +614,6 @@ argocd app create guestbook \
 
 따라서 학습/디버깅 용도로는 유용하지만, 실제 운영 환경에서는 **Application CRD를 Git에 두고 관리하는 방식**을 우선 고려해야 한다.
 
-
-
 ### 2.8. Argo CD Web-based Terminal 설정
 
 Argo CD UI에서는 리소스 상세 화면에서 **Terminal 탭**을 통해 컨테이너 쉘에 접속할 수 있다. 이를 사용하려면 다음과 같은 설정이 필요하다.
@@ -636,8 +622,6 @@ Argo CD UI에서는 리소스 상세 화면에서 **Terminal 탭**을 통해 컨
 2. `argocd-server`에 매핑된 ClusterRole에 `pods/exec` 리소스에 대한 `create` 권한 추가
 
 이후 UI에서 파드를 선택하고 **TERMINAL** 버튼을 누르면, 웹 기반 터미널을 통해 컨테이너 내부 쉘에 접근할 수 있다.
-
-
 
 ### 2.9. Argo CD Autopilot
 
@@ -707,8 +691,6 @@ Autopilot CLI를 사용하면 다음과 같이 Project와 Application을 쉽게 
   * `argocd-autopilot app create hello-world2 --app <demo-app-repo> -p prd --type kustomize`
 
 이때 Autopilot은 내부적으로 Git 리포지터리에 필요한 매니페스트를 커밋하고, Argo CD는 이를 기준으로 애플리케이션을 배포한다.
-
-
 
 ### 2.10. 동기화 원리 – Hook, Sync Waves, Sync Windows
 
@@ -808,8 +790,6 @@ argocd proj windows list PROJECT
 
 이를 통해 **배포 가능 시간대와 금지 시간대**를 프로젝트 단위로 제어할 수 있다.
 
-
-
 ### 2.11. 요약
 
 1. **Argo CD**는 GitOps 방식으로 쿠버네티스 애플리케이션을 배포·관리하는 **선언적 CD 도구**이다.
@@ -881,8 +861,6 @@ argocd proj windows list PROJECT
   * HA 구성은 리소스 소비가 크므로 **테스트 환경에서는 replica/resource 조정** 필요
   * `kustomize`로 설치해도 결국 동일한 HA 리소스가 생성 → 노드 스펙 고려 필수
 
-
-
 ### 3.3. Argo CD Self-managing (자기 자신을 GitOps로 관리)
 
 #### 3.3.1. Argo CD를 Application으로 등록
@@ -927,8 +905,6 @@ spec:
 
 > 포인트: **Argo CD 자신의 보안/네트워크/리소스 설정까지 GitOps 대상으로 만든다**는 게 핵심.
 
-
-
 ### 3.4. 관찰 가능성(Observability) 기초 개념
 
 #### 3.4.1. 모니터링 vs 관측 가능성
@@ -964,8 +940,6 @@ spec:
 * **SLA**: 고객과의 법적 계약 (예: 99.9% 미만 시 요금 일부 환불)
 
 > 운영에서는 **SLI를 잘 선택하고, 현실적인 SLO를 잡은 뒤, SLA는 비즈니스와 협의**하는 구조.
-
-
 
 ### 3.5. Prometheus & kube-prometheus-stack
 
@@ -1027,8 +1001,6 @@ spec:
   * Application 개수, Sync 상태, Health 상태
   * Controller/Repo-server/Server의 메트릭 및 에러율
 
-
-
 ### 3.6. 운영 시 중요한 Argo CD 메트릭
 
 #### 3.6.1. OOMKilled & 리소스 이슈
@@ -1057,7 +1029,6 @@ spec:
   3. 병렬 처리 옵션(`parallelismlimit`, `kubectl-parallelism-limit`) **조정**
 
 > 특히 동시 배포가 몰릴 때만 터지는 이슈라면, 메트릭과 배포 타이밍을 함께 보는 것이 중요.
-
 
 ### 3.7. 백업 & 재해 복구 (Disaster Recovery)
 
@@ -1089,3 +1060,35 @@ spec:
 
 > 주의: admin 비밀번호도 **백업 시점 값으로 덮어써짐** → 로그인 정보 변경에 유의.
 > 이 장의 핵심: **Argo CD 자체를 GitOps로 운영 + HA + 관찰 가능성 + 백업/복원**까지 구축해야 실제 운영에서 쓸 수 있는 GitOps 플랫폼이 된다.
+
+### 3.8. 요약
+
+1. **Argo CD를 HA 구조로 설계**해야 실제 운영 환경에서 장애·스파이크 트래픽에 버틸 수 있다.
+
+   * `argocd-server / repo-server / application-controller / redis-ha`를 중심으로 다중화하고,
+   * 리소스 요청/제한과 Replica 수, Leader Election, Redis Sentinel/HAProxy 구조를 함께 고려해야 한다.
+
+2. **Argo CD 자체를 GitOps 대상으로 삼는 Self-managing 패턴**이 중요하다.
+
+   * Argo CD 설치 매니페스트를 Git에 두고 `Application`으로 등록하면,
+   * 설정 변경·업그레이드·보안 정책(NetworkPolicy 등)을 모두 PR 기반으로 관리하고, 자동 Sync/Prune로 일관성을 유지할 수 있다.
+
+3. **관찰 가능성(Observability)을 Prometheus + Grafana로 구축**해야 운영 품질을 올릴 수 있다.
+
+   * `kube-prometheus-stack`과 `ServiceMonitor`를 이용해 Argo CD 메트릭을 수집하고,
+   * 공식/커스텀 Grafana 대시보드로 Sync 상태, Health, 에러율, 리소스 사용량을 상시 모니터링한다.
+
+4. **OOMKilled 및 리소스 병목에 대한 튜닝 포인트**를 미리 이해하고 있어야 한다.
+
+   * `argocd-repo-server`, `argocd-application-controller`의 메모리 사용 패턴을 모니터링하고,
+   * `--parallelismlimit`, `--kubectl-parallelism-limit` 조정과 적절한 request/limit, Replica 확장으로 안정성을 확보한다.
+
+5. **백업/재해 복구(Disaster Recovery) 전략은 필수**이다.
+
+   * `argocd admin export/import`로 설정·Application 상태를 백업/복원하고,
+   * 새 클러스터에 HA Argo CD를 올린 뒤 Import하여 동일한 GitOps 환경을 재현하는 플로우를 숙련해야 한다.
+
+6. 최종적으로 3장에서 다룬 내용은, **“Argo CD를 하나의 고가용성 GitOps 플랫폼으로 운영하기 위한 최소 요건”**이라 볼 수 있다.
+
+   * HA 아키텍처 + Self-managing + 관찰 가능성 + DR이 묶여야,
+   * 실무에서 수십~수백 개 Application과 다수 클러스터를 안정적으로 GitOps 방식으로 운영할 수 있다.
