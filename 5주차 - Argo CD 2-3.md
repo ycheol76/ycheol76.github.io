@@ -768,7 +768,7 @@ policy.csv: |
 
 ---
 
-### 2️⃣ OAuth 2.0 vs OpenID Connect
+### OAuth 2.0 vs OpenID Connect
 
 | 구분    | OAuth 2.0             | OpenID Connect              |
 | ----- | --------------------- | --------------------------- |
