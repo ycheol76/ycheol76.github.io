@@ -1,14 +1,9 @@
-# 5주차 학습정리 - ArgoCD 보안 및 인증: Keycloak SSO 연동과 접근 제어로 완성하는 엔터프라이즈 GitOps
+# 5주차 - Argo CD 2/3
 
-**일시:** 2025년 11월 11일
-**주제:** ArgoCD 보안 모델 이해 + Keycloak 기반 SSO 연동 + RBAC/서비스 어카운트 설계
-
----
-
-## 📋 전체 목차
+## 목차
 
 1. [전체 아키텍처 개요](#-전체-아키텍처-개요)
-2. [실습 환경 구성 (kind + Ingress-Nginx + ArgoCD TLS)](#-실습-환경-구성-kind--ingress-nginx--argocd-tls)
+2. [실습 구성 (Ingress-Nginx + ArgoCD TLS)](#-실습-구성--ingress-nginx--argocd-tls)
 
    1. kind 클러스터 배포 개념 & 실습
    2. Ingress-Nginx 설치 및 SSL Passthrough
@@ -45,16 +40,10 @@
    1. OAuth 2.0 Authorization Code Flow
    2. OAuth 2.0 vs OIDC 차이
    3. Access Token / ID Token / Refresh Token 역할
-9. [실무 적용 시나리오](#-실무-적용-시나리오)
-10. [다음 학습 방향](#-다음-학습-방향)
-11. [주요 명령어 치트시트](#-주요-명령어-치트시트)
-12. [5주차 핵심 요약](#-5주차-핵심-요약)
 
 ---
 
-## 🧩 전체 아키텍처 개요
-
-이번 주 실습에서 구성한 논리 구조는 다음과 같다.
+## 전체 아키텍처
 
 ```text
 [개발자 브라우저]
@@ -73,15 +62,13 @@
 * **Keycloak:** Docker 컨테이너로 별도 실행, OIDC Provider 역할
 * **인증 흐름:** 브라우저 → ArgoCD → Keycloak → 토큰 발급 → ArgoCD 세션 생성
 
-이 구조를 기억하면 이후에 **멀티 클러스터 GitOps**나 **엔터프라이즈 SSO**로 확장할 때 흐름을 쉽게 떠올릴 수 있다.
-
 ---
 
-## 🚀 실습 환경 구성 (kind + Ingress-Nginx + ArgoCD TLS)
+## 실습 구성 (Ingress-Nginx + ArgoCD TLS)
 
-### 1️⃣ kind 클러스터 배포
+### kind 클러스터 배포
 
-#### (1) 개념 정리
+#### 1) 개념 정리
 
 * **kind(Kubernetes IN Docker)**
 
