@@ -68,7 +68,7 @@
 
 ### kind 클러스터 배포
 
-#### 1) 개념 정리
+#### (1) 개념 정리
 
 * **kind(Kubernetes IN Docker)**
 
@@ -133,7 +133,7 @@ open "http://127.0.0.1:30001/#scale=1.5"
 
 ---
 
-### 2️⃣ Ingress-Nginx 설치 및 설정
+### Ingress-Nginx 설치 및 설정
 
 #### (1) 개념 정리
 
@@ -201,7 +201,7 @@ exit
 
 ---
 
-### 3️⃣ ArgoCD with TLS 설치
+### ArgoCD with TLS 설치
 
 #### (1) self-signed TLS 인증서 생성
 
@@ -298,9 +298,9 @@ argocd app list
 
 ---
 
-## 🔐 ArgoCD 접근 제어 개념
+## ArgoCD 접근 제어 개념
 
-### 1️⃣ 계정 유형
+### 계정 유형
 
 1. **로컬 계정 (local users)**
 
@@ -316,7 +316,7 @@ argocd app list
    * UI 로그인 불필요, 주로 `apiKey`로 인증
    * 최소 권한으로 제한하는 것이 핵심
 
-### 2️⃣ RBAC 리소스와 동작
+### RBAC 리소스와 동작
 
 **정책 형식**
 
@@ -338,7 +338,7 @@ g, <사용자 또는 그룹>, <역할>
   * `default/*` : default namespace 애플리케이션
   * `default/myapp` : 특정 애플리케이션
 
-### 3️⃣ 최소 권한 원칙 (Least Privilege)
+### 최소 권한 원칙 (Least Privilege)
 
 * `admin` 계정은 **비상용 + 초기 세팅용**으로만 사용하고 기본적으로 비활성화
 * 팀 작업은 **개인 계정/SSO 계정**에 권한을 부여
@@ -348,9 +348,9 @@ g, <사용자 또는 그룹>, <역할>
 
 ---
 
-## 🛡 ArgoCD 접근 제어 실습
+## ArgoCD 접근 제어 실습
 
-### 1️⃣ 선언적 로컬 사용자 관리 (alice)
+### 선언적 로컬 사용자 관리 (alice)
 
 #### (1) alice 계정 생성
 
@@ -390,7 +390,7 @@ argocd login argocd.example.com --username alice --insecure
 
 ---
 
-### 2️⃣ RBAC 정책 구성
+### RBAC 정책 구성
 
 ```bash
 KUBE_EDITOR="nano" kubectl edit cm -n argocd argocd-rbac-cm
@@ -423,7 +423,7 @@ kubectl rollout restart deployment argocd-server -n argocd
 
 ---
 
-### 3️⃣ 서비스 어카운트 (gitops-ci)
+### 서비스 어카운트 (gitops-ci)
 
 #### (1) 서비스 어카운트 정의
 
@@ -481,15 +481,15 @@ policy.csv: |
 
 ---
 
-## 🔑 Keycloak 개념 정리
+## Keycloak 개념 정리
 
-### 1️⃣ Keycloak이란?
+### Keycloak이란?
 
 * 오픈 소스 **ID & Access Management** 솔루션
 * 웹/모바일 애플리케이션에 **로그인·권한 관리** 기능을 외부 서비스로 분리해줌
 * SSO, 소셜 로그인, LDAP/AD 연동, MFA, 세션 관리 등을 제공
 
-### 2️⃣ 핵심 개념 정리
+### 핵심 개념 정리
 
 * **Realm**
 
@@ -516,7 +516,7 @@ policy.csv: |
 
   * AD/LDAP 사용자 디렉토리를 그대로 사용
 
-### 3️⃣ 주요 기능 & 표준 프로토콜
+### 주요 기능 & 표준 프로토콜
 
 * **기능**
 
@@ -533,9 +533,9 @@ policy.csv: |
 
 ---
 
-## ⚙️ Keycloak 설치 및 기본 구성 실습
+## Keycloak 설치 및 기본 구성 실습
 
-### 1️⃣ Docker로 Keycloak 실행
+### Docker로 Keycloak 실행
 
 ```bash
 # 기본 관리자 계정: admin / admin
@@ -562,7 +562,7 @@ open http://localhost:8080/admin
 
 ---
 
-### 2️⃣ Realm 생성 (myrealm)
+### Realm 생성 (myrealm)
 
 1. Admin Console 접속
 2. 좌측 상단 Realm Selector → **Create Realm**
@@ -576,7 +576,7 @@ open http://localhost:8080/admin
 
 ---
 
-### 3️⃣ 사용자 / 그룹 / 역할 관리
+### 사용자 / 그룹 / 역할 관리
 
 #### (1) User 생성
 
@@ -608,7 +608,7 @@ open http://localhost:8080/admin
 
 ---
 
-### 4️⃣ Account Console 사용
+### Account Console 사용
 
 * URL 예: `http://localhost:8080/realms/myrealm/account`
 * 사용자: `keycloak / <설정한 암호>`
@@ -622,9 +622,9 @@ open http://localhost:8080/admin
 
 ---
 
-## 🔗 ArgoCD와 Keycloak SSO(OIDC) 연동
+## ArgoCD와 Keycloak SSO(OIDC) 연동
 
-### 1️⃣ 전체 인증 흐름 (Authorization Code Flow)
+### 전체 인증 흐름 (Authorization Code Flow)
 
 ```text
 [User] → [ArgoCD] → (리디렉트) → [Keycloak 로그인] → (코드) → [ArgoCD] → (토큰 교환) → 세션 생성
@@ -636,7 +636,7 @@ open http://localhost:8080/admin
 
 ---
 
-### 2️⃣ Keycloak Client(argocd) 생성
+### Keycloak Client(argocd) 생성
 
 1. Admin Console → **Clients** → **Create client**
 2. 설정:
@@ -659,7 +659,7 @@ open http://localhost:8080/admin
 
 ---
 
-### 3️⃣ ArgoCD OIDC 설정
+### ArgoCD OIDC 설정
 
 #### (1) Client Secret을 argocd-secret에 저장
 
@@ -673,7 +673,7 @@ kubectl get secret -n argocd argocd-secret -o jsonpath='{.data}' | jq
 
 #### (2) `argocd-cm`에 oidc.config 추가
 
-> ⚠️ `issuer`의 IP는 **Keycloak이 띄워진 호스트의 실제 IP**로 변경할 것
+> `issuer`의 IP는 **Keycloak이 띄워진 호스트의 실제 IP**로 변경할 것
 
 ```bash
 # 로컬 IP 확인 (예: 192.168.254.110)
@@ -716,7 +716,7 @@ kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server
 
 ---
 
-### 4️⃣ 그룹 기반 RBAC 연동 아이디어
+### 그룹 기반 RBAC 연동 아이디어
 
 OIDC에서 `groups` claim을 포함하도록 설정하면, Keycloak 그룹을 ArgoCD RBAC에 그대로 매핑할 수 있다.
 
@@ -744,9 +744,9 @@ policy.csv: |
 
 ---
 
-## 🎯 OAuth 2.0 & OpenID Connect 개념
+## OAuth 2.0 & OpenID Connect 개념
 
-### 1️⃣ OAuth 2.0 Authorization Code Flow
+### OAuth 2.0 Authorization Code Flow
 
 **역할**
 
@@ -781,7 +781,7 @@ OIDC는 OAuth 2.0 위에 **사용자 신원 정보를 표준화**해서 올려�
 
 ---
 
-### 3️⃣ 토큰 종류와 역할
+### 토큰 종류와 역할
 
 #### (1) Access Token
 
@@ -826,7 +826,7 @@ OIDC는 OAuth 2.0 위에 **사용자 신원 정보를 표준화**해서 올려�
 
 ---
 
-## 🧪 실무 적용 시나리오
+## 실무 적용 시나리오
 
 ### 시나리오 1: 엔터프라이즈 SSO 통합
 
@@ -885,112 +885,3 @@ argocd app sync myapp --auth-token $TOKEN
 
 ---
 
-## 🔭 다음 학습 방향
-
-* Keycloak 고급 기능
-
-  * User Federation (LDAP/AD)
-  * Identity Brokering (Google, GitHub 등)
-  * Fine-grained Authorization (Keycloak 정책 엔진)
-* K8s 보안 및 정책
-
-  * Sealed Secrets / External Secrets Operator
-  * Sigstore/Cosign 기반 이미지 서명
-  * Kyverno/OPA를 이용한 Policy Enforcement
-* 관찰성과 감사
-
-  * Keycloak Metrics → Prometheus + Grafana 대시보드
-  * ArgoCD Metrics / Audit Log 수집
-* 멀티 클러스터 GitOps
-
-  * ApplicationSet + Cluster Generator
-  * Hub-Spoke 구조, 여러 클러스터에 동일 앱 배포
-
----
-
-## 📚 주요 명령어 치트시트
-
-### ArgoCD 계정 관리
-
-```bash
-# 계정 목록
-argocd account list
-
-# 계정 비밀번호 변경
-argocd account update-password --account <username>
-
-# 서비스 어카운트 토큰 생성
-argocd account generate-token -a <service-account>
-
-# 서비스 어카운트 토큰 삭제
-argocd account delete-token -a <service-account> <token-id>
-```
-
-### Keycloak 컨테이너 관리
-
-```bash
-# 시작
-docker start dev-keycloak
-
-# 로그 보기
-docker logs dev-keycloak -f
-
-# 중지
-docker stop dev-keycloak
-
-# 제거
-docker rm dev-keycloak
-```
-
-### ArgoCD RBAC 확인
-
-```bash
-kubectl get cm -n argocd argocd-rbac-cm -o yaml
-
-# 현재 계정으로 권한 테스트
-argocd account can-i sync applications '*'
-argocd account can-i get applications 'default/*'
-```
-
-### Keycloak Admin CLI (옵션)
-
-```bash
-# 설치 (macOS)
-brew install keycloak/kc
-
-# 로그인
-kc config credentials --server http://localhost:8080 \
-  --realm master --user admin --password admin
-
-# Realm 목록
-kc get realms
-
-# User 생성
-kc create users -r myrealm -s username=bob -s enabled=true
-
-# Role 할당
-kc add-roles -r myrealm --uusername bob --rolename myrole
-```
-
----
-
-## 🎉 5주차 핵심 요약
-
-* **실습 환경**
-
-  * kind 기반 K8s + Ingress-Nginx + ArgoCD TLS + Keycloak
-* **ArgoCD 보안 모델**
-
-  * 로컬 계정, SSO 계정, 서비스 어카운트
-  * ConfigMap(`argocd-cm`, `argocd-rbac-cm`)을 이용한 선언적 계정/RBAC 관리
-* **Keycloak SSO 연동**
-
-  * Realm / Client / User / Group / Role 개념 정리
-  * OIDC Authorization Code Flow를 통한 ArgoCD 로그인
-* **프로토콜 이해**
-
-  * OAuth 2.0은 권한 부여, OIDC는 인증 + 권한
-  * Access/ID/Refresh Token의 역할을 구분해서 이해
-
-> 이 문서를 나중에 다시 봤을 때, **아키텍처 → 개념 → 실습 → 실무 시나리오** 순서로 읽으면
-> ArgoCD + Keycloak 기반 엔터프라이즈 GitOps 인증 구조를 빠르게 복습할 수 있다. 🚀
