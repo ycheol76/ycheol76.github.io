@@ -5,41 +5,41 @@
 1. [전체 아키텍처 개요](#-전체-아키텍처-개요)
 2. [실습 구성 (Ingress-Nginx + ArgoCD TLS)](#-실습-구성--ingress-nginx--argocd-tls)
 
-   1. kind 클러스터 배포 개념 & 실습
-   2. Ingress-Nginx 설치 및 SSL Passthrough
-   3. ArgoCD with TLS (self-signed) 설치
+   - kind 클러스터 배포 개념 & 실습
+   - Ingress-Nginx 설치 및 SSL Passthrough
+   - ArgoCD with TLS (self-signed) 설치
 3. [ArgoCD 접근 제어 개념](#-argocd-접근-제어-개념)
 
-   1. 계정 유형 (로컬 계정 / SSO 계정 / 서비스 어카운트)
-   2. RBAC 리소스와 액션
-   3. 최소 권한 원칙과 보안 패턴
+   - 계정 유형 (로컬 계정 / SSO 계정 / 서비스 어카운트)
+   - RBAC 리소스와 액션
+   - 최소 권한 원칙과 보안 패턴
 4. [ArgoCD 접근 제어 실습](#-argocd-접근-제어-실습)
 
-   1. 선언적 로컬 사용자 관리 (alice)
-   2. RBAC 정책 설정 (argocd-rbac-cm)
-   3. CI/CD용 서비스 어카운트 생성 및 토큰 사용
+   - 선언적 로컬 사용자 관리 (alice)
+   - RBAC 정책 설정 (argocd-rbac-cm)
+   - CI/CD용 서비스 어카운트 생성 및 토큰 사용
 5. [Keycloak 개념 정리](#-keycloak-개념-정리)
 
-   1. Keycloak이란?
-   2. 핵심 개념: Realm / Client / User / Group / Role
-   3. 주요 기능 및 표준 프로토콜
+   - Keycloak이란?
+   - 핵심 개념: Realm / Client / User / Group / Role
+   - 주요 기능 및 표준 프로토콜
 6. [Keycloak 설치 및 기본 구성 실습](#️-keycloak-설치-및-기본-구성-실습)
 
-   1. Docker 기반 Keycloak 실행
-   2. Realm 생성 (myrealm)
-   3. 사용자, 그룹, 역할 생성 및 매핑
-   4. Account Console 사용
+   - Docker 기반 Keycloak 실행
+   - Realm 생성 (myrealm)
+   - 사용자, 그룹, 역할 생성 및 매핑
+   - Account Console 사용
 7. [ArgoCD와 Keycloak SSO(OIDC) 연동](#-argocd와-keycloak-ssooidc-연동)
 
-   1. 전체 인증 흐름 이해 (Authorization Code Flow)
-   2. Keycloak Client(argocd) 생성
-   3. ArgoCD oidc.config 설정 및 Secret 연동
-   4. 그룹 기반 RBAC 연동 아이디어
+   - 전체 인증 흐름 이해 (Authorization Code Flow)
+   - Keycloak Client(argocd) 생성
+   - ArgoCD oidc.config 설정 및 Secret 연동
+   - 그룹 기반 RBAC 연동 아이디어
 8. [OAuth 2.0 & OpenID Connect 개념](#-oauth-20--openid-connect-개념)
 
-   1. OAuth 2.0 Authorization Code Flow
-   2. OAuth 2.0 vs OIDC 차이
-   3. Access Token / ID Token / Refresh Token 역할
+   - OAuth 2.0 Authorization Code Flow
+   - OAuth 2.0 vs OIDC 차이
+   - Access Token / ID Token / Refresh Token 역할
 
 ---
 
