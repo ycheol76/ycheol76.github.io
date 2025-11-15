@@ -2,8 +2,8 @@
 
 ## 목차
 
-1. [전체 아키텍처 개요](#-전체-아키텍처-개요)
-2. [실습 구성 (Ingress-Nginx + ArgoCD TLS)](#-실습-구성--ingress-nginx--argocd-tls)
+1. [전체 아키텍처 개요](#-전체-아키텍처)
+2. [실습 구성 (Ingress-Nginx + ArgoCD TLS)](##-실습-구성--ingress-nginx--argocd-tls)
 
    - kind 클러스터 배포 개념 & 실습
    - Ingress-Nginx 설치 및 SSL Passthrough
