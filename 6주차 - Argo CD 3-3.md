@@ -19,6 +19,10 @@
 
 # 1. Cluster Management — kind + Ingress + Argo CD
 
+* 로컬 실습을 위한 kind 클러스터 3개 구성
+* mgmt 클러스터에 Ingress Controller 및 Argo CD 설치
+* TLS 설정 및 Argo CD 초기 로그인 확인
+
 ## ▶ 실습 체크리스트
 
 * mgmt 클러스터 생성(kind)
@@ -117,6 +121,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 # 2. dev / prd 클러스터 설치 및 kubeconfig 조정
 
+* dev / prd 클러스터를 분리 구성하여 환경 격리
+* IP 주소 기반 kubeconfig 수동 수정
+* Argo CD에서 접근 가능하도록 클러스터 등록
+
 ## ▶ 실습 체크리스트
 
 * dev/prd 클러스터 생성
@@ -163,6 +171,10 @@ argocd cluster list
 ---
 
 # 3. Helm Chart 제작 및 Multi-Cluster 배포
+
+* nginx Helm Chart 직접 제작
+* values-dev.yaml / values-prd.yaml 환경 분리
+* Argo CD로 dev, prd 클러스터에 각각 배포
 
 ## ▶ 실습 체크리스트
 
@@ -222,6 +234,10 @@ spec:
 
 # 4. Argo CD ApplicationSet
 
+* 여러 클러스터에 동일 앱을 반복 배포하는 방식 학습
+* List Generator, Cluster Generator 구성 실습
+* Helm Chart와 함께 연동하는 패턴 확인
+
 ## ▶ 실습 체크리스트
 
 * List Generator 기반 ApplicationSet 작성
@@ -269,6 +285,10 @@ spec:
 
 # 5. Keycloak + Argo CD + Jenkins (OIDC SSO)
 
+* Keycloak을 IdP로 설정하여 인증 통합
+* Argo CD와 Jenkins에 OIDC SSO 적용
+* Redirect URI 및 Client 설정 예제 포함
+
 ## ▶ 실습 체크리스트
 
 * Keycloak 설치
@@ -292,6 +312,10 @@ docker run -d \
 ---
 
 # 6. OpenLDAP + Keycloak 통합
+
+* LDAP 사용자/그룹 정보를 Keycloak에 연동
+* 그룹 기반 RBAC 정책 구성 준비 단계
+* 조직 내 인증 체계 통합 기반 마련
 
 ## ▶ 실습 체크리스트
 
@@ -324,6 +348,10 @@ Keycloak에서 연결 후 테스트 사용자 로그인 및 그룹 claim 확인.
 ---
 
 # 7. Argo CD RBAC 적용
+
+* Keycloak 그룹 기반으로 RBAC 정책 작성
+* 관리자는 관리자 역할, 일반 사용자는 ReadOnly
+* policy.csv, rbac-cm 구성 실습 포함
 
 ## ▶ 실습 체크리스트
 
@@ -367,6 +395,10 @@ jwt.io 에서 확인하거나 `kubectl get secret` 후 디코딩
 
 # 8. 클러스터 삭제
 
+* kind delete 명령으로 클러스터 정리
+* /etc/hosts 수정 등 후처리 단계 소개
+* 실습 환경 복원 및 리소스 정리 요령
+
 ## ▶ 실습 체크리스트
 
 * dev/prd 클러스터 삭제
@@ -393,6 +425,10 @@ docker network prune
 ---
 
 # 9. ApplicationSet Cluster Generator 고급 설정
+
+* 클러스터 이름, 라벨 기반 동적 생성 실습
+* 확장성 있는 배포 구조 구성
+* 복잡한 환경에서 자동화 유지 전략
 
 ## ▶ 실습 체크리스트
 
@@ -448,6 +484,10 @@ spec:
 
 # 10. Argo CD Notifications 연동
 
+* Slack으로 배포 결과 자동 알림 전송
+* Trigger, Template, Subscription 설정 포함
+* GitOps DevOps 통합 알림 구성 방법 소개
+
 ## ▶ 실습 체크리스트
 
 * Argo CD Notifications Controller 설치
@@ -488,6 +528,10 @@ labels:
 
 # 11. GitOps Pull vs Push 방식 비교
 
+* Argo CD 기반 Pull 방식과 Jenkins Push 방식 비교
+* 보안성, 속도, 자동화 관점에서 장단점 정리
+* 실무 적용 시 고려사항 요약
+
 | 항목     | Pull 방식 (Argo CD) | Push 방식 (Jenkins 등) |
 | ------ | ----------------- | ------------------- |
 | 트리거    | Git 변경 감지         | CI 파이프라인 수동 트리거     |
@@ -511,6 +555,10 @@ pipeline {
 ---
 
 # 12. Helm + Parameterization 자동화
+
+* values.yaml을 환경별로 분리하여 관리
+* Git 연동으로 배포 파라미터 자동화
+* Helm 구조 개선과 유지보수 전략 포함
 
 ## ▶ 실습 체크리스트
 
