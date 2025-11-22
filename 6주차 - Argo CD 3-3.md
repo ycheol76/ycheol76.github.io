@@ -29,13 +29,13 @@
 
 ## 1.1 실습 개요
 
-이 섹션은 GitOps 컨트롤 플레인 구조를 이해하는 핵심 단계입니다. kind 클러스터를 3개(mgmt/dev/prd)로 구성하여 실제 엔터프라이즈 환경의 멀티 클러스터 운영 방식을 재현합니다.
+kind 클러스터를 3개(mgmt/dev/prd)로 구성하여 실제 엔터프라이즈 환경의 멀티 클러스터 운영 방식을 재현
 
 * mgmt 클러스터: Argo CD, Ingress, SSO(Keycloak), CI(Jenkins)를 모두 탑재한 중앙 제어 클러스터
 * dev/prd 클러스터: 애플리케이션 배포 대상. Argo CD가 GitOps 방식으로 관리
 * 모든 클러스터는 Docker bridge 네트워크(kind)를 통해 통신하며, mgmt에서 dev/prd로 API 요청을 전달
 
-즉, 다음과 같은 구조를 직접 구축하는 실습입니다:
+다음과 같은 구조를 직접 구축하는 실습:
 
 Git → Argo CD(mgmt) → 여러 Kubernetes Cluster(dev/prd)
 
