@@ -89,7 +89,7 @@ AWS_SECRET_KEY: "AKIA..."
 * 사람보다 **머신 계정**(서비스계정, CI/CD 파이프라인)이 더 많음
 * 각 서비스마다 DB 계정, API Key, Token이 개별 관리 → Secret Sprawl 심각
 
-Secret Sprawl: (API 키, 비밀번호, 암호화 키 등 민감한 정보가 조직 내에서 통제되지 않고 여러 곳에 산발적으로 흩어지는 현상)
+※Secret Sprawl: API 키, 비밀번호, 암호화 키 등 민감한 정보가 조직 내에서 통제되지 않고 여러 곳에 산발적으로 흩어지는 현상
 
 ---
 
