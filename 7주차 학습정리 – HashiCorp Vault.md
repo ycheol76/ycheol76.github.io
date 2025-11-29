@@ -1,12 +1,58 @@
-# 7주차 학습정리 – HashiCorp Vault: 엔터프라이즈급 시크릿 관리와 CI/CD 통합
+# 7주차 – HashiCorp Vault
 
-> 목표: **다음에 혼자 다시 실습할 수 있게**, 개념 + 명령어 + 흐름을 한 번에 볼 수 있는 정리본
+## 목차 (Table of Contents)
+
+1. [왜 HashiCorp Vault인가?](#1-왜-hashicorp-vault인가)
+
+   * [우리가 다루는 "시크릿(Secret)"이란?](#우리가-다루는-시크릿secret이란)
+   * [아키텍처 진화와 Secret Sprawl](#아키텍처-진화와-secret-sprawl)
+   * [Zero Trust + Secret Management](#zero-trust--secret-management)
+   * [우리의 목표](#우리의-목표)
+2. [Vault Dev 모드 설치 + UI/CLI 접속](#2-vault-dev-모드-설치--uicli-접속)
+
+   * [Dev Mode vs Production Mode](#개념--dev-mode-vs-production-mode)
+   * [kind + Dev Mode Vault 설치](#실습--kind--dev-mode-vault-설치)
+   * [UI / CLI 접속](#ui--cli-접속)
+   * [체크 포인트](#체크-포인트)
+3. [KV 시크릿 엔진 + Policy + AppRole](#3-kv-시크릿-엔진--policy--approle)
+
+   * [Secrets Engine 개념](#개념)
+   * [Policy 설정](#policy--경로path-기반-접근-제어)
+   * [AppRole 인증](#approle--머신machine용-계정)
+   * [실습 및 체크 포인트](#실습)
+4. [Vault Agent + Sidecar 패턴 (Kubernetes)](#4-vault-agent--sidecar-패턴-kubernetes)
+
+   * [Vault Agent의 역할](#vault-agent의-역할)
+   * [Kubernetes Vault Agent Injector](#kubernetes-vault-agent-injector)
+   * [실습 및 배포 예제](#실습--kubernetes-auth--sidecar-주입)
+   * [체크 포인트](#체크-포인트-1)
+5. [Transit 엔진 – Encryption as a Service](#5-transit-엔진--encryption-as-a-service)
+
+   * [Transit 개념 및 구조](#개념-1)
+   * [실습 – 암복호화](#실습--transit-엔진-활성화-및-암복호화)
+   * [체크 포인트](#체크-포인트-2)
+6. [Jenkins + Vault – CI 파이프라인 시크릿 관리](#6-jenkins--vault--ci-파이프라인-시크릿-관리-개념-위주)
+
+   * [하드코딩의 위험성](#jenkins에-하드코딩된-시크릿의-위험)
+   * [AppRole 및 DB 연동 개요](#vault-측-설정-요약-jenkins-approle)
+   * [체크 포인트](#체크-포인트-3)
+7. [ArgoCD + Vault Plugin – GitOps 시크릿 통합](#7-argocd--vault-plugin--gitops와-시크릿-통합)
+
+   * [GitOps 딜레마와 해결 방식](#gitops의-딜레마)
+   * [AppRole 설정 및 Placeholder](#vault-policy--approle-argocd용)
+   * [체크 포인트](#체크-포인트-4)
+8. [Vault Secrets Operator (VSO) – Vault → K8s Secret 동기화](#8-vault-secrets-operator-vso--vault--kubernetes-secret-동기화)
+
+   * [VSO 목적 및 CRD 구성](#vso의-목적)
+   * [실습 – Secret 동기화 예제](#실습--정적-시크릿-동기화)
+   * [체크 포인트](#체크-포인트-5)
+
 
 ---
 
-## 0. 전체 큰 그림 – 왜 HashiCorp Vault인가?
+## 1. 왜 HashiCorp Vault인가?
 
-### 0-1. 우리가 다루는 “시크릿(Secret)”이란?
+### 우리가 다루는 “시크릿(Secret)”이란?
 
 노출되면 큰 피해가 발생하는 모든 값들:
 
@@ -18,7 +64,7 @@
 **문제점 (안티패턴)**
 
 ```yaml
-# ❌ 소스코드 / YAML / Jenkinsfile에 박아 넣는 방식
+# 소스코드 / YAML / Jenkinsfile에 박아 넣는 방식
 DB_PASSWORD: "admin123"
 AWS_SECRET_KEY: "AKIA..."
 ```
@@ -30,7 +76,7 @@ AWS_SECRET_KEY: "AKIA..."
 
 ---
 
-### 0-2. 아키텍처 진화와 Secret Sprawl
+### 아키텍처 진화와 Secret Sprawl
 
 1. **모놀리식 / 온프레미스 시대**
 
@@ -43,18 +89,19 @@ AWS_SECRET_KEY: "AKIA..."
 * 사람보다 **머신 계정**(서비스계정, CI/CD 파이프라인)이 더 많음
 * 각 서비스마다 DB 계정, API Key, Token이 개별 관리 → Secret Sprawl 심각
 
+Secret Sprawl: (API 키, 비밀번호, 암호화 키 등 민감한 정보가 조직 내에서 통제되지 않고 여러 곳에 산발적으로 흩어지는 현상)
 ---
 
-### 0-3. Zero Trust + Secret Management
+### Zero Trust + Secret Management
 
 **Zero Trust 기본 원칙**
 
-* "내부니까 안전하겠지" X
+* "내부니까 안전하겠지" No
 * 모든 요청에 대해:
 
-  1. **너 누구냐?** (Authentication)
-  2. **뭘 할 수 있냐?** (Authorization)
-  3. **언제 뭘 했냐?** (Audit)
+  1. **너 누구니?** (Authentication)
+  2. **뭘 할 수 있나?** (Authorization)
+  3. **언제 뭘 했는가?** (Audit)
 
 Vault는 이걸 **시크릿 관점**에서 구현:
 
@@ -64,22 +111,20 @@ Vault는 이걸 **시크릿 관점**에서 구현:
 
 ---
 
-### 0-4. 이번 주의 최종 목표
+### 우리의 목표
 
 * Kubernetes에 Vault를 배포하고 (Dev → Prod 개념 이해)
 * KV / Database / Transit 엔진을 실습으로 익히고
 * Vault Agent, Jenkins, ArgoCD Vault Plugin, Vault Secrets Operator(VSO)로
   **CI/CD와 GitOps 파이프라인에 Vault를 통합**해 보는 것
 
-즉,
-
-> “GitOps + CI/CD + Vault” 조합으로 **프로덕션급 시크릿 파이프라인**을 손으로 한 번 다 훑어 본다.
+즉, “GitOps + CI/CD + Vault” 조합으로 **프로덕션급 시크릿 파이프라인**을 훑어 본다.
 
 ---
 
-## Lab 1. Vault Dev 모드 설치 + UI/CLI 접속
+## 1. Vault Dev 모드 설치 + UI/CLI 접속
 
-### 1-1. 개념 – Dev Mode vs Production Mode
+### 개념 – Dev Mode vs Production Mode
 
 **Dev Mode**
 
@@ -94,13 +139,11 @@ Vault는 이걸 **시크릿 관점**에서 구현:
 * 시작 시 항상 **Sealed 상태** → 여러 개의 Unseal Key를 모아야 Open
 * TLS, Auto-Unseal(KMS, 다른 Vault Transit 등) 필수
 
-이번 Lab은 **명령어 흐름과 개념을 잡기 위해 Dev Mode**로 진행.
-
 ---
 
-### 1-2. 실습 – kind + Dev Mode Vault 설치
+### 실습 – kind + Dev Mode Vault 설치
 
-#### (1) kind 클러스터 생성
+#### kind 클러스터 생성
 
 ```bash
 kind create cluster --name vault-demo --config - <<EOF
@@ -118,7 +161,7 @@ kubectl cluster-info
 kubectl get nodes
 ```
 
-#### (2) Helm으로 Vault Dev 설치
+#### Helm으로 Vault Dev 설치
 
 ```bash
 helm repo add hashicorp https://helm.releases.hashicorp.com
@@ -137,7 +180,7 @@ helm install vault hashicorp/vault \
 kubectl get pod,svc -n vault
 ```
 
-#### (3) UI / CLI 접속
+#### UI / CLI 접속
 
 * UI: 브라우저에서 `http://127.0.0.1:30000`
 
@@ -155,7 +198,7 @@ vault login $VAULT_TOKEN
 vault version
 ```
 
-### 1-3. 체크 포인트
+### 체크 포인트
 
 * Dev 모드는 **연습용** → 실제 운영에 사용하면 안 됨.
 * UI와 CLI 둘 다 **같은 Vault 인스턴스**를 보는 것임을 이해하기.
@@ -163,11 +206,11 @@ vault version
 
 ---
 
-## Lab 2. KV 시크릿 엔진 + Policy + AppRole
+## 2. KV 시크릿 엔진 + Policy + AppRole
 
-### 2-1. 개념
+### 개념
 
-#### (1) Secrets Engine이란?
+#### Secrets Engine이란?
 
 * Vault 코어는 요청을 라우팅하고, 실제 시크릿 저장/생성은 **엔진** 단위로 수행
 * 주요 엔진 예시:
@@ -175,8 +218,6 @@ vault version
   * **KV 엔진**: Key-Value 정적 시크릿 (config처럼 쓰는 상수)
   * **Database 엔진**: DB 계정을 **요청 시마다 동적으로 생성/폐기**
   * **Transit 엔진**: 암호화/복호화를 대신 수행 (Encryption as a Service)
-
-이번 Lab에서는 **KV v2 엔진**으로 정적 시크릿을 다룸.
 
 #### (2) Policy – 경로(Path) 기반 접근 제어
 
@@ -191,7 +232,7 @@ path "secret/data/myapp/*" {
 * Policy = 이 토큰/역할이 **어떤 path에 어떤 권한(capabilities)**을 가지는지 정의
 * capability 종류: `read`, `list`, `create`, `update`, `delete`, `sudo` 등
 
-#### (3) AppRole – 머신(Machine)용 계정
+#### AppRole – 머신(Machine)용 계정
 
 * 사람은 GitHub, LDAP, Token 등으로 로그인
 * Jenkins, Cron Job, 애플리케이션은 **AppRole**로 인증
@@ -202,9 +243,9 @@ path "secret/data/myapp/*" {
 
 ---
 
-### 2-2. 실습
+### 실습
 
-#### (1) Vault Pod 접속
+#### Vault Pod 접속
 
 ```bash
 kubectl exec -it -n vault vault-0 -- sh
@@ -213,7 +254,7 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_TOKEN='root'
 ```
 
-#### (2) KV v2 엔진 활성화 + 시크릿 저장
+#### KV v2 엔진 활성화 + 시크릿 저장
 
 ```bash
 # KV v2 엔진 활성화
@@ -228,9 +269,9 @@ vault kv put secret/myapp/config \
 vault kv get secret/myapp/config
 ```
 
-> kv-v2 구조상, 실제 API 경로는 `secret/data/myapp/config` 형태를 사용.
+* kv-v2 구조상, 실제 API 경로는 `secret/data/myapp/config` 형태를 사용.
 
-#### (3) Policy 생성
+#### Policy 생성
 
 ```bash
 vault policy write myapp-policy - <<EOF
@@ -240,7 +281,7 @@ path "secret/data/myapp/*" {
 EOF
 ```
 
-#### (4) AppRole 생성
+#### AppRole 생성
 
 ```bash
 vault auth enable approle
@@ -257,7 +298,7 @@ vault write -f auth/approle/role/myapp/secret-id
 
 * 출력된 `role_id`, `secret_id`는 CI/CD, 애플리케이션 설정에 사용
 
-### 2-3. 체크 포인트
+### 체크 포인트
 
 * `kv-v2`는 항상 `/data/` 경로가 추가된다는 점(`secret/data/...`) 기억.
 * Policy는 **최소 권한 원칙**으로 작성 (필요한 경로만 허용).
@@ -265,11 +306,11 @@ vault write -f auth/approle/role/myapp/secret-id
 
 ---
 
-## Lab 3. Vault Agent + Sidecar 패턴 (Kubernetes)
+## 3. Vault Agent + Sidecar 패턴 (Kubernetes)
 
-### 3-1. 개념
+### 개념
 
-#### (1) Direct Integration의 문제점
+#### Direct Integration의 문제점
 
 * 애플리케이션이 Vault SDK를 직접 사용하면:
 
@@ -277,7 +318,7 @@ vault write -f auth/approle/role/myapp/secret-id
   * 토큰 갱신/Lease 관리/에러 처리/재시도 로직 등 추가 구현 필요
   * 비즈니스 로직 + 보안/인프라 로직이 뒤섞임
 
-#### (2) Vault Agent의 역할
+#### Vault Agent의 역할
 
 * Vault Agent가 대신:
 
@@ -286,9 +327,9 @@ vault write -f auth/approle/role/myapp/secret-id
   * 토큰/Lease 자동 갱신 (TTL 만료 전 갱신)
   * 결과 캐싱 (Vault API 호출 감소)
 
-→ 애플리케이션 코드는 **“파일 읽기”만 하면 됨**
+* 애플리케이션 코드는 **“파일 읽기”만 하면 됨**
 
-#### (3) Kubernetes Vault Agent Injector
+#### Kubernetes Vault Agent Injector
 
 * Mutating Admission Webhook 기반으로 Pod 생성 시점에 **자동으로**:
 
@@ -298,9 +339,9 @@ vault write -f auth/approle/role/myapp/secret-id
 
 ---
 
-### 3-2. 실습 – Kubernetes Auth + Sidecar 주입
+### 실습 – Kubernetes Auth + Sidecar 주입
 
-#### (1) Kubernetes Auth 활성화
+#### Kubernetes Auth 활성화
 
 ```bash
 kubectl exec -it -n vault vault-0 -- sh
@@ -314,7 +355,7 @@ vault write auth/kubernetes/config \
   kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443"
 ```
 
-#### (2) Policy & Role 설정
+#### Policy & Role 설정
 
 ```bash
 vault policy write myapp-policy - <<EOF
@@ -330,7 +371,7 @@ vault write auth/kubernetes/role/myapp \
   ttl=1h
 ```
 
-#### (3) 테스트용 시크릿 저장
+#### 테스트용 시크릿 저장
 
 ```bash
 vault kv put secret/myapp/config \
@@ -338,7 +379,7 @@ vault kv put secret/myapp/config \
   password='secret123'
 ```
 
-#### (4) Deployment 작성 (Sidecar 자동 주입)
+#### Deployment 작성 (Sidecar 자동 주입)
 
 ```yaml
 apiVersion: v1
@@ -399,7 +440,7 @@ kubectl exec -it <pod-name> -c myapp -- cat /vault/secrets/config.txt
 # PASSWORD=secret123
 ```
 
-### 3-3. 체크 포인트
+### 체크 포인트
 
 * annotation 오타 시 Injector가 동작하지 않음 → Key 이름/문자열 정확히.
 * 템플릿에서 `.Data.data.username` 같이 **KV v2 구조**를 정확히 써야 함.
@@ -407,11 +448,11 @@ kubectl exec -it <pod-name> -c myapp -- cat /vault/secrets/config.txt
 
 ---
 
-## Lab 4. Transit 엔진 – Encryption as a Service
+## 4. Transit 엔진 – Encryption as a Service
 
-### 4-1. 개념
+### 개념
 
-#### (1) 기존 앱 내 암호화의 문제
+#### 기존 앱 내 암호화의 문제
 
 * 앱 내부에서 AES 라이브러리를 직접 사용하면:
 
@@ -419,7 +460,7 @@ kubectl exec -it <pod-name> -c myapp -- cat /vault/secrets/config.txt
   * 누가 키를 볼 수 있음?
   * 키를 로테이션하면 기존 데이터는 어떻게 복호화?
 
-#### (2) Transit 엔진의 역할
+#### Transit 엔진의 역할
 
 * **키는 Vault가 소유 및 관리**
 * 애플리케이션은 `plaintext → encrypt → ciphertext`, `ciphertext → decrypt → plaintext` 요청만 수행
@@ -429,16 +470,16 @@ kubectl exec -it <pod-name> -c myapp -- cat /vault/secrets/config.txt
   * 앱 코드는 키를 보지 못함 → 키 노출 위험 감소
   * API 호출 기반이므로 멀티 언어/멀티 플랫폼 공통 사용
 
-#### (3) 암호화 계층
+#### 암호화 계층
 
 * 네트워크(TLS), 디스크(LUKS) 암호화 외에
 * **애플리케이션 계층**에서 민감 컬럼(이메일, 카드번호 등)을 Transit으로 암호화
 
 ---
 
-### 4-2. 실습 – Transit 엔진 활성화 및 암복호화
+### 실습 – Transit 엔진 활성화 및 암복호화
 
-#### (1) Transit 엔진 활성화
+#### Transit 엔진 활성화
 
 ```bash
 kubectl exec -it -n vault vault-0 -- sh
@@ -450,7 +491,7 @@ vault write -f transit/keys/my-key
 vault read transit/keys/my-key
 ```
 
-#### (2) 암호화
+#### 암호화
 
 ```bash
 PLAINTEXT_BASE64=$(echo -n "my secret data" | base64)
@@ -463,7 +504,7 @@ vault write transit/encrypt/my-key plaintext="$PLAINTEXT_BASE64"
 # ciphertext    vault:v1:8SDd3WHD...
 ```
 
-#### (3) 복호화
+#### 복호화
 
 ```bash
 CIPHERTEXT="vault:v1:8SDd3WHD..."
@@ -475,7 +516,7 @@ echo "bXkgc2VjcmV0IGRhdGE=" | base64 -d
 # my secret data
 ```
 
-#### (4) 키 Rotation
+#### 키 Rotation
 
 ```bash
 vault write -f transit/keys/my-key/rotate
@@ -485,7 +526,7 @@ vault read transit/keys/my-key   # latest_version 증가 확인
 * 새로 암호화할 때는 최신 버전의 키 사용
 * 예전 버전으로 암호화된 데이터도 (키를 파괴하지 않았다면) 복호화 가능
 
-### 4-3. 체크 포인트
+### 체크 포인트
 
 * Transit API는 `plaintext`를 **Base64 인코딩 문자열로 받는다**는 점 주의.
 * 애플리케이션 관점에서:
@@ -496,14 +537,14 @@ vault read transit/keys/my-key   # latest_version 증가 확인
 
 ---
 
-## Lab 5. Jenkins + Vault – CI 파이프라인 시크릿 관리 (개념 위주)
+## 5. Jenkins + Vault – CI 파이프라인 시크릿 관리 (개념 위주)
 
-### 5-1. 개념
+### 개념
 
-#### (1) Jenkins에 하드코딩된 시크릿의 위험
+#### Jenkins에 하드코딩된 시크릿의 위험
 
 ```groovy
-// ❌ 안티 패턴
+// 안티 패턴
 environment {
   DB_PASS      = "admin123"
   AWS_SECRET   = "AKIA..."
@@ -519,7 +560,7 @@ environment {
 * Jenkins는 빌드 시점에 Vault에서 시크릿을 가져와 **환경 변수로만 일시 사용**
 * 가능한 경우, DB 계정도 **동적(Dynamic)**으로 발급받아서 TTL 후 자동 폐기
 
-#### (2) KV vs Dynamic Secrets
+#### KV vs Dynamic Secrets
 
 * **KV(정적)**: 고정된 값 (예: 특정 API Key, Webhook URL)
 * **Dynamic(Database)**: 요청 시마다 임시 계정 생성
@@ -529,7 +570,7 @@ environment {
 
 ---
 
-### 5-2. Vault 측 설정 요약 (Jenkins AppRole)
+### Vault 측 설정 요약 (Jenkins AppRole)
 
 ```bash
 vault policy write jenkins-policy - <<EOF
@@ -549,7 +590,7 @@ vault read auth/approle/role/jenkins/role-id
 vault write -f auth/approle/role/jenkins/secret-id
 ```
 
-### 5-3. Vault Database 엔진 (동적 Credential 개념)
+### Vault Database 엔진 (동적 Credential 개념)
 
 ```bash
 vault secrets enable database
@@ -571,7 +612,7 @@ vault write database/roles/jenkins-role \
 Jenkins에서는 Vault Plugin의 `withVault { ... }` 블록에서
 `database/creds/jenkins-role`을 읽어 `DB_USERNAME`, `DB_PASSWORD`를 환경 변수로 사용.
 
-### 5-4. 체크 포인트
+### 체크 포인트
 
 * CI 파이프라인에서 Vault를 붙이는 목적:
 
@@ -581,11 +622,11 @@ Jenkins에서는 Vault Plugin의 `withVault { ... }` 블록에서
 
 ---
 
-## Lab 6. ArgoCD + Vault Plugin – GitOps와 시크릿 통합
+## 6. ArgoCD + Vault Plugin – GitOps와 시크릿 통합
 
-### 6-1. 개념
+### 개념
 
-#### (1) GitOps의 딜레마
+#### GitOps의 딜레마
 
 * GitOps 철학: 모든(거의 모든) 설정을 Git에 선언적으로 저장
 * 문제: Secret 리소스에 평문으로 ID/PW를 저장할 수 없음
@@ -594,7 +635,7 @@ Jenkins에서는 Vault Plugin의 `withVault { ... }` 블록에서
 
 * Sealed Secrets, External Secrets Operator, SOPS 등
 
-#### (2) ArgoCD Vault Plugin의 접근 방식
+#### ArgoCD Vault Plugin의 접근 방식
 
 * Git에는 **Placeholder**만 기록한다:
 
@@ -617,7 +658,7 @@ env:
 
 ---
 
-### 6-2. Vault Policy + AppRole (ArgoCD용)
+### Vault Policy + AppRole (ArgoCD용)
 
 ```bash
 vault policy write argocd-policy - <<EOF
@@ -639,7 +680,7 @@ vault write -f auth/approle/role/argocd/secret-id
 
 ArgoCD 쪽에서는 이 `ROLE_ID`, `SECRET_ID`를 Secret으로 만들어 환경 변수로 사용.
 
-### 6-3. Placeholder 문법 정리
+### Placeholder 문법 정리
 
 ```yaml
 env:
@@ -652,7 +693,7 @@ env:
 * `path:` 뒤: Vault에서 읽을 경로
 * `#` 뒤: JSON/YAML 필드 이름
 
-### 6-4. 체크 포인트
+### 체크 포인트
 
 * 이 방식은 **CD(ArgoCD) 단계에서만** 동작 (CI와 분리됨).
 * Git에는 Placeholder만 있기 때문에 Repo가 노출되어도 시크릿 평문은 노출되지 않음.
@@ -660,11 +701,11 @@ env:
 
 ---
 
-## Lab 7. Vault Secrets Operator (VSO) – Vault → Kubernetes Secret 동기화
+## 7. Vault Secrets Operator (VSO) – Vault → Kubernetes Secret 동기화
 
-### 7-1. 개념
+### 개념
 
-#### (1) VSO의 목적
+#### VSO의 목적
 
 * 애플리케이션/개발팀 입장:
 
@@ -678,7 +719,7 @@ Vault Secrets Operator(VSO)는:
 * Vault에서 시크릿을 읽어와서
 * Kubernetes Secret으로 생성/갱신해 주는 **Operator(컨트롤러)**
 
-#### (2) 주요 CRD
+#### 주요 CRD
 
 * `VaultConnection`: Vault 서버 연결 정보 (address, TLS 등)
 * `VaultAuth`: Vault 인증 방식 (kubernetes, approle 등)
@@ -687,9 +728,9 @@ Vault Secrets Operator(VSO)는:
 
 ---
 
-### 7-2. 실습 – 정적 시크릿 동기화
+### 실습 – 정적 시크릿 동기화
 
-#### (1) VSO 설치
+#### VSO 설치
 
 ```bash
 helm repo add hashicorp https://helm.releases.hashicorp.com
@@ -702,7 +743,7 @@ helm install vault-secrets-operator hashicorp/vault-secrets-operator \
 kubectl get pod -n vault-secrets-operator-system
 ```
 
-#### (2) VaultConnection CRD
+#### VaultConnection CRD
 
 ```yaml
 apiVersion: secrets.hashicorp.com/v1beta1
@@ -758,7 +799,7 @@ spec:
     serviceAccount: vso
 ```
 
-#### (4) VaultStaticSecret – Vault → K8s Secret
+#### VaultStaticSecret – Vault → K8s Secret
 
 ```yaml
 apiVersion: secrets.hashicorp.com/v1beta1
@@ -781,7 +822,7 @@ spec:
 * `myapp-config-secret`이라는 Kubernetes Secret으로 생성/동기화
 * Vault 값 변경 시, 최대 30초 내에 Secret도 갱신
 
-#### (5) Pod에서 Secret 사용
+#### Pod에서 Secret 사용
 
 ```yaml
 apiVersion: v1
@@ -810,7 +851,7 @@ spec:
 애플리케이션 입장에서는 **그냥 기존처럼 Secret을 읽고 있을 뿐**이지만,
 실제로는 백그라운드에서 VSO가 Vault와 통신하여 값을 가져와 주는 구조.
 
-### 7-3. 체크 포인트
+### 체크 포인트
 
 * 장점:
 
@@ -819,33 +860,3 @@ spec:
 * 단점:
 
   * etcd에 저장된 Secret은 여전히 별도 보호 필요 → K8s **Encryption at Rest** 설정과 함께 써야 완전
-
----
-
-## 8. 복습 루틴 제안
-
-1. **1차 복습** (Vault 기초 잡기)
-
-   * Lab 1: kind + Dev Mode Vault 설치, UI/CLI 접속 익히기
-   * Lab 2: KV v2 + Policy + AppRole로 정적 시크릿 관리 구조 이해
-   * Lab 4: Transit 엔진으로 문자열 암복호화, Key rotation 감각 잡기
-
-2. **2차 복습** (K8s와의 결합)
-
-   * Lab 3: Vault Agent Sidecar로 Pod에 파일로 시크릿 주입
-   * Myapp Pod 안에서 `/vault/secrets/config.txt` 내용을 실제로 확인
-
-3. **3차 복습** (CI/CD & GitOps)
-
-   * Lab 5: Jenkins + Vault 개념 복습 (KV vs Dynamic Secret 차이)
-   * Lab 6: ArgoCD + Vault Plugin으로 GitOps와 시크릿 통합 개념 재확인
-   * Lab 7: VSO로 Vault ↔ K8s Secret 동기화 패턴 익히기
-
-4. **심화**
-
-   * Dynamic DB Secret + Transit 암호화를 한 애플리케이션(예: 간단한 REST API)으로 연결해보기
-   * 실제로 DB에 암호문만 저장하고, Transit으로 복호화하는 end-to-end 흐름 구성해 보기
-
-이 문서는 “개념 + 실습 + 체크 포인트”가 한 번에 들어가 있으니,
-다음에 다시 할 때는 Lab 하나씩 골라서 그대로 따라가면서 주석을 추가해 나가면
-자신만의 운영 매뉴얼로 확장할 수 있습니다.
