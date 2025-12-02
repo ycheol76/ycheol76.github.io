@@ -1,4 +1,4 @@
-# 8주차-2 - Vault Production
+# 8주차-2 Vault Production
 
 ## 목차
 
