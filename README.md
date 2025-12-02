@@ -13,6 +13,8 @@
 * [6주차 - ArgoCD 3/3](https://github.com/ycheol76/ycheol76.github.io/blob/main/6%EC%A3%BC%EC%B0%A8%20-%20Argo%20CD%203-3.md)
 * [Argo CD · Jenkins · Keycloak · OpenLDAP 통합 실습](https://github.com/ycheol76/ycheol76.github.io/blob/main/Argo%20CD%20%C2%B7%20Jenkins%20%C2%B7%20Keycloak%20%C2%B7%20OpenLDAP%20%ED%86%B5%ED%95%A9%20%EC%8B%A4%EC%8A%B5.md)
 * [7주차 - HashiCorp Vault](https://github.com/ycheol76/ycheol76.github.io/blob/main/7%EC%A3%BC%EC%B0%A8%20%E2%80%93%20HashiCorp%20Vault.md)
+* [8주차-1 Hashicorp Vault/VSO on K8S](https://github.com/ycheol76/ycheol76.github.io/blob/main/8%EC%A3%BC%EC%B0%A8-1%20HashiCorp%20Vault%20%26%20VSO%20on%20Kubernetes.md)
+* [8주차-2 Vault Production]()
 
 ---
 ![책1.png](https://github.com/ycheol76/ycheol76.github.io/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-10-19%2008-09-28.png)
