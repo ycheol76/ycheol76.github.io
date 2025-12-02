@@ -1,4 +1,4 @@
-# 8주차 - HashiCorp Vault / VSO on Kubernetes
+# 8주차-1 HashiCorp Vault / VSO on Kubernetes
 
 ## 목차
 
