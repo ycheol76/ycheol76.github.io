@@ -15,11 +15,9 @@
 
 ## 1. Vault 설치 on K8S (kind)
 
-### 목적
-
-* Kubernetes 환경(kind)에 Vault를 **설치**한다.
-* Vault 서버를 **Initialize → Unseal → Login**까지 수행한다.
-* NodePort 기반으로 **Vault UI 및 CLI 접근**을 구성한다.
+* Kubernetes 환경(kind)에 Vault를 **설치**
+* Vault 서버를 **Initialize → Unseal → Login**까지 수행
+* NodePort 기반으로 **Vault UI 및 CLI 접근**을 구성
 
 ---
 
@@ -139,7 +137,7 @@ Unseal 을 진행해야 정상 동작하며, 이 과정을 이해하는 것이 �
 * **Init**: Root Token 과 Unseal Key 생성
 * **Shamir Secret Sharing** 방식 사용
 * Key-Share = 1, Key-Threshold = 1 구성(학습용)
-* Unseal 과정 후 Vault 서버는 **Ready** 상태가 된다.
+* Unseal 과정 후 Vault 서버는 **Ready** 상태가 됨
 
 ### 설치
 
@@ -196,7 +194,7 @@ Token 인증 방식으로 로그인한다.
 
 ## 7. Vault Audit Log 설정 (선택)
 
-Audit 로그는 Vault 운영에서 반드시 활성화해야 하는 필수 기능이다.
+Audit 로그는 Vault 운영에서 반드시 활성화해야 하는 필수 기능.
 PVC 기반 file audit log 사용.
 
 ### 중요
