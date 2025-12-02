@@ -15,6 +15,12 @@
 
 ## 1. Vault 설치 on K8S (kind)
 
+* **HashiCorp Vault Secrets Operator (VSO)**를 사용하면 애플리케이션 코드를 변경할 필요 없이 Kubernetes 환경에서 중앙 집중식 HashiCorp Vault 인스턴스의 시크릿을 관리할 수 있음.
+* VSO는 Kubernetes 사용자 정의 리소스 정의(CRD)를 활용하여 Vault의 시크릿을 가져와 네이티브 Kubernetes Secret 리소스로 자동 동기화 함
+* VSO는 Vault와 Kubernetes 클러스터 간의 시크릿 관리를 간소화하는 Kubernetes 오퍼레이터로 동작
+* 설치 : VSO는 일반적으로 **Helm 차트**를 통해 Kubernetes 클러스터에 배포됩니다.
+* 인증 : Kubernetes 서비스 어카운트를 활용하여 **Kubernetes Auth 방식**으로 Vault 서버에 안전하게 인증
+* 사용자 정의 리소스 정의(CRD) - **VaultConnection**, **VaultStaticSecret**, **VaultPKISecret**
 * Kubernetes 환경(kind)에 Vault를 **설치**
 * Vault 서버를 **Initialize → Unseal → Login**까지 수행
 * NodePort 기반으로 **Vault UI 및 CLI 접근**을 구성
