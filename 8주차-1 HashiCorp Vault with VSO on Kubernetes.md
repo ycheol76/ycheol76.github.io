@@ -2,32 +2,35 @@
 
 ## 목차
 
-* [1. Vault 설치 on K8S (kind)](#1-vault-설치-on-k8s-kind)
-* [2. KIND 클러스터 생성](#2-kind-클러스터-생성)
-* [3. Helm 기반 Vault 설치](#3-helm-기반-vault-설치)
-* [4. Vault 초기화init--unseal](#4-vault-초기화init--unseal)
-* [5. Vault CLI 로그인 (로컬)](#5-vault-cli-로그인-로컬)
-* [6. Vault UI 접속](#6-vault-ui-접속)
-* [7. Vault Audit Log 설정 (선택)](#7-vault-audit-log-설정-선택)
-* [8. Vault 사용 on K8S](#8-vault-사용-on-k8s)
+* [1. 개요](#1-개요)
+* [2. Vault 설치 on K8S (kind)](#2-vault-설치-on-k8s-kind)
+* [3. KIND 클러스터 생성](#3-kind-클러스터-생성)
+* [4. Helm 기반 Vault 설치](#4-helm-기반-vault-설치)
+* [5. Vault 초기화init--unseal](#5-vault-초기화init--unseal)
+* [6. Vault CLI 로그인 (로컬)](#6-vault-cli-로그인-로컬)
+* [7. Vault UI 접속](#7-vault-ui-접속)
+* [8. Vault Audit Log 설정 (선택)](#8-vault-audit-log-설정-선택)
+* [9. Vault 사용 on K8S](#9-vault-사용-on-k8s)
 
 ---
 
-## 1. Vault 설치 on K8S (kind)
+## 1. 개요
 
 * **HashiCorp Vault Secrets Operator (VSO)** 를 사용하면 애플리케이션 코드를 변경할 필요 없이 Kubernetes 환경에서 중앙 집중식 HashiCorp Vault 인스턴스의 시크릿을 관리할 수 있음.
 * VSO는 Kubernetes 사용자 정의 리소스 정의(CRD)를 활용하여 Vault의 시크릿을 가져와 네이티브 Kubernetes Secret 리소스로 자동 동기화 함
 * VSO는 Vault와 Kubernetes 클러스터 간의 시크릿 관리를 간소화하는 Kubernetes 오퍼레이터로 동작
-* 설치 : VSO는 일반적으로 **Helm 차트**를 통해 Kubernetes 클러스터에 배포됩니다.
-* 인증 : Kubernetes 서비스 어카운트를 활용하여 **Kubernetes Auth 방식**으로 Vault 서버에 안전하게 인증
-* 사용자 정의 리소스 정의(CRD) - **VaultConnection**, **VaultStaticSecret**, **VaultPKISecret**
+* Kubernetes 서비스 어카운트를 활용하여 **Kubernetes Auth 방식**으로 Vault 서버에 안전하게 인증
+* 사용자 정의 리소스 정의(CRD) : **VaultConnection**, **VaultStaticSecret**, **VaultPKISecret**
+
+## 2. Vault 설치 on K8S (kind)
+
 * Kubernetes 환경(kind)에 Vault를 **설치**
 * Vault 서버를 **Initialize → Unseal → Login**까지 수행
 * NodePort 기반으로 **Vault UI 및 CLI 접근**을 구성
 
 ---
 
-## 2. KIND 클러스터 생성
+## 3. KIND 클러스터 생성
 
 Vault 실습을 위한 가장 간단한 형태의 K8S 환경을 kind 로 구성
 
@@ -60,7 +63,7 @@ docker exec -it myk8s-control-plane sh -c 'apt update && apt install tree psmisc
 
 ---
 
-## 3. Helm 기반 Vault 설치
+## 4. Helm 기반 Vault 설치
 
 HashiCorp 공식 Helm chart 를 사용
 
@@ -133,7 +136,7 @@ kubectl exec -ti vault-0 -n vault -- vault status
 
 ---
 
-## 4. Vault 초기화(Init) & Unseal
+## 5. Vault 초기화(Init) & Unseal
 
 Vault 는 **보안상 기본적으로 Sealed** 상태로 시작
 Unseal 을 진행해야 정상 동작하며, 이 과정을 이해하는 것이 중요
@@ -177,7 +180,7 @@ jq -r ".root_token" cluster-keys.json
 
 ---
 
-## 5. Vault CLI 로그인 (로컬)
+## 6. Vault CLI 로그인 (로컬)
 
 ```bash
 export VAULT_ADDR='http://localhost:30000'
@@ -187,7 +190,7 @@ vault login   # root token 입력
 
 ---
 
-## 6. Vault UI 접속
+## 7. Vault UI 접속
 
 ```bash
 kubectl get svc vault -n vault
@@ -198,7 +201,7 @@ Token 인증 방식으로 로그인한다.
 
 ---
 
-## 7. Vault Audit Log 설정 (선택)
+## 8. Vault Audit Log 설정 (선택)
 
 Audit 로그는 Vault 운영에서 반드시 활성화해야 하는 필수 기능.
 PVC 기반 file audit log 사용.
@@ -218,14 +221,14 @@ kubectl exec -it vault-0 -n vault -- tail -f /vault/logs/audit.log
 
 ---
 
-## 8. Vault 사용 on K8S
+## 9. Vault 사용 on K8S
 
 ### 목적 목적
 
 * Vault에 **시크릿을 생성**하고,
 * Kubernetes 파드(웹 애플리케이션)가 **서비스 어카운트 토큰(JWT)** 으로 Vault에 **로그인 → 시크릿을 조회**하는 전체 흐름 실습
 
-### 8.1 전체 흐름 개요 (Kubernetes Auth)
+### 9.1 전체 흐름 개요 (Kubernetes Auth)
 
 참고: [https://developer.hashicorp.com/vault/tutorials/kubernetes/agent-kubernetes](https://developer.hashicorp.com/vault/tutorials/kubernetes/agent-kubernetes)
 
@@ -255,7 +258,7 @@ kubectl exec -it vault-0 -n vault -- tail -f /vault/logs/audit.log
 
 ---
 
-### 8.2 Vault에 시크릿 생성 (kv-v2)
+### 9.2 Vault에 시크릿 생성 (kv-v2)
 
 ```bash
 # kv-v2 시크릿 엔진 활성화
@@ -284,7 +287,7 @@ curl -s --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
 
 ---
 
-### 8.3 Kubernetes Authentication 구성 (Vault 쪽 설정)
+### 9.3 Kubernetes Authentication 구성 (Vault 쪽 설정)
 
 **구성 관계도**
 `[Auth] k8s role(webapp)` ⟵ `[Policy] path secret/data/webapp/config read` ⟵ `[Secret] username/password`
@@ -303,7 +306,7 @@ kubectl rolesum vault -n vault
   * `tokenreviews.authentication.k8s.io`
     를 수행할 수 있어야 함 (TokenReview 기반 검증).
 
-#### 8.3.2 Kubernetes Auth 메서드 활성화 및 설정
+#### 9.3.2 Kubernetes Auth 메서드 활성화 및 설정
 
 ```bash
 # Kubernetes auth 활성화
@@ -320,7 +323,7 @@ vault write auth/kubernetes/config \
 vault read auth/kubernetes/config
 ```
 
-#### 8.3.3 webapp용 Policy 생성
+#### 9.3.3 webapp용 Policy 생성
 
 ```bash
 # secret/data/webapp/config 에 read 권한 부여
@@ -331,7 +334,7 @@ path "secret/data/webapp/config" {
 EOF
 ```
 
-#### 8.3.4 Kubernetes Auth Role(webapp) 생성
+#### 9.3.4 Kubernetes Auth Role(webapp) 생성
 
 ```bash
 vault write auth/kubernetes/role/webapp \
@@ -347,9 +350,9 @@ vault write auth/kubernetes/role/webapp \
 
 ---
 
-### 8.4 사전 지식 정리: ServiceAccount, SAT, JWT, OIDC
+### 9.4 사전 지식 정리: ServiceAccount, SAT, JWT, OIDC
 
-#### 8.4.1 ServiceAccount & ServiceAccountToken
+#### 9.4.1 ServiceAccount & ServiceAccountToken
 
 * **ServiceAccount(SA)**
 
@@ -368,7 +371,7 @@ vault write auth/kubernetes/role/webapp \
   * 파드 생성 시 `serviceAccountName` 기본값을 `default` 로 설정
   * 필요한 경우 `/var/run/secrets/kubernetes.io/serviceaccount` 에 토큰을 마운트
 
-#### 8.4.2 ServiceAccount Token Volume Projection (PSAT)
+#### 9.4.2 ServiceAccount Token Volume Projection (PSAT)
 
 기존 **시크릿 볼륨** 대신 **Projected Volume** 으로 토큰/CA/namespace 정보를 한 디렉터리에 투사.
 
@@ -400,7 +403,7 @@ spec:
 K8S 1.22+ 에서는 기본적으로 **bound service account token volume** 형태로
 `kube-api-access-<suffix>` projected volume 이 자동 추가됨
 
-#### 8.4.3 JWT & OIDC 짧은 정리
+#### 9.4.3 JWT & OIDC 짧은 정리
 
 * **JWT(JSON Web Token)**
 
@@ -416,7 +419,7 @@ K8S 1.22+ 에서는 기본적으로 **bound service account token volume** 형�
 
 ---
 
-### 8.5 WebApp 배포: Vault와 연동하는 예제 애플리케이션
+### 9.5 WebApp 배포: Vault와 연동하는 예제 애플리케이션
 
 예제 웹앱 동작:
 
@@ -424,7 +427,7 @@ K8S 1.22+ 에서는 기본적으로 **bound service account token volume** 형�
 * `/auth/kubernetes/login` 으로 Vault 로그인 → Vault 토큰 획득
 * `secret/data/webapp/config` 시크릿 조회 후 HTTP 응답으로 username/password 출력
 
-#### 8.5.1 webapp 배포 매니페스트
+#### 9.5.1 webapp 배포 매니페스트
 
 ```bash
 kubectl create sa vault
@@ -488,7 +491,7 @@ EOF
 kubectl get pod -l app=webapp
 ```
 
-#### 8.5.2 SA 토큰 및 JWT Payload 확인
+#### 9.5.2 SA 토큰 및 JWT Payload 확인
 
 ```bash
 # 토큰 내용 확인 (10분마다 갱신)
@@ -501,7 +504,7 @@ kubectl exec -it deploy/webapp -- \
   cut -d "." -f2 | base64 -d; echo ""'
 ```
 
-#### 8.5.3 애플리케이션 동작 확인
+#### 9.5.3 애플리케이션 동작 확인
 
 ```bash
 curl 127.0.0.1:30001
@@ -524,9 +527,9 @@ curl 127.0.0.1:30001
 
 ---
 
-### 8.6 트래픽 & Audit Log 로 흐름 검증
+### 9.6 트래픽 & Audit Log 로 흐름 검증
 
-#### 8.6.1 webapp → Vault 네트워크 트래픽 (ngrep)
+#### 9.6.1 webapp → Vault 네트워크 트래픽 (ngrep)
 
 ```bash
 # veth0600eea7: webapp 파드에 연결된 veth 라고 가정
@@ -544,7 +547,7 @@ ngrep -tW byline -d veth0600eea7 '' 'tcp port 8200'
    * Header `X-Vault-Token: <발급 토큰>`
    * 응답 200 OK, Body 에 username/password 포함
 
-#### 8.6.2 Vault Audit 로그에서 흐름 확인
+#### 9.6.2 Vault Audit 로그에서 흐름 확인
 
 ```bash
 kubectl exec -it vault-0 -n vault -- \
@@ -566,7 +569,7 @@ Audit 로그는 **보안/운영 측면에서 강력한 추적 근거**를 제공
 
 ---
 
-### 8.7 정리: K8S 앱이 Vault 시크릿을 사용하는 패턴
+### 9.7 정리: K8S 앱이 Vault 시크릿을 사용하는 패턴
 
 1. 앱이 사용할 시크릿을 **Vault kv-v2** 에 저장
 2. 해당 시크릿 경로에 대해 최소 권한 **Policy** 작성
